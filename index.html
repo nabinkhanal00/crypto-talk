@@ -1,0 +1,2544 @@
+<!doctype html>
+<html lang="en-GB">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>From Caesar to TLS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&display=block">
+<style>
+/* Guardsix slide deck design system applied to a full-viewport interactive deck.
+   Layout: content slides on light grey, title / section / closing slides on the deep-green gradient;
+   logo top-left, g6 monogram watermark bottom-right, page meta in a fixed bottom bar. */
+:root{
+  /* Guardsix palette */
+  --gs-yellow:#D2FF00; --gs-grey:#EBEBEB;
+  --gs-g1:#B7C4C4; --gs-g2:#829E9E; --gs-g3:#4E7777; --gs-g4:#195050; --gs-g5:#003232;
+  --gs-blue:#385BCB; --gs-coral:#FF8163; --gs-teal:#08B8B7;
+  /* accent is the same in both themes */
+  --accent:#D2FF00; --accent-hover:#DCFF33; --accent-ink:#003232;
+  --good:#08B8B7; --bad:#FF8163; --ally-2:#829E9E; --adversary:#FF8163;
+  --font-sans:'Montserrat',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --bar-h:56px;
+  /* semantic tokens, light (default) */
+  --bg:#EBEBEB; --surface:#FFFFFF; --surface-2:#DCE2E2; --inset:#EBEBEB; --input:#FFFFFF; --page:#EBEBEB;
+  --line:rgba(25,80,80,.14); --line-strong:rgba(25,80,80,.4);
+  --fg:#003232; --body:#195050; --muted:#195050; --muted-surface:#4E7777; --eyebrow:#195050;
+  --accent-text:#003232; --hl-bg:#D2FF00; --hl-fg:#003232; --link:#195050; --focus-line:#195050;
+  --sel-bg:#003232; --sel-fg:#EBEBEB; --hover:rgba(25,80,80,.07);
+  --good-text:#006D6C; --good-tint:rgba(8,184,183,.16); --bad-text:#A1361A; --bad-tint:rgba(255,129,99,.2);
+  --pill-good-bg:rgba(8,184,183,.14); --pill-good-fg:#006D6C; --pill-bad-bg:rgba(255,129,99,.14); --pill-bad-fg:#A1361A;
+  --series-1:#195050; --series-2:#385BCB; --ally-1:#195050; --ally-1-ink:#EBEBEB;
+  --disc:#003232; --track:#003232;
+  --shadow-1:0 1px 2px rgba(0,50,50,.06),0 1px 1px rgba(0,50,50,.04);
+  --shadow-2:0 2px 4px rgba(0,50,50,.06),0 4px 12px rgba(0,50,50,.06);
+  --shadow-3:0 4px 8px rgba(0,50,50,.08),0 12px 32px rgba(0,50,50,.08);
+  --logo:url("data:image/svg+xml,%3Csvg id='Layer_1' xmlns='http://www.w3.org/2000/svg' width='202mm' height='44mm' viewBox='0 0 572.6 124.72'%3E%3Cpath d='M370.89,62.14V1.95h-13.52v34.65c-5.72-3.66-13.07-5.74-21.67-5.74-21.52,0-35.1,12.98-35.1,31.42s12.45,31.61,35.1,31.61,35.2-13.12,35.2-31.61c0-.05,0-.1,0-.15ZM357.25,67.75c0,7.16-5.95,13.02-13.23,13.02h-16.65c-7.27,0-13.23-5.86-13.23-13.02v-10.88c0-7.16,5.95-13.02,13.23-13.02h16.65c7.27,0,13.23,5.86,13.23,13.02v10.88Z' fill='%23195050'%3E%3C/path%3E%3Cpath d='M236.39,62.44s0-.1,0-.14c0-18.49-13.68-31.42-35.2-31.42s-35.1,12.98-35.1,31.42,12.45,31.61,35.1,31.61c8.83,0,16.12-2,21.73-5.53v4.66h13.47v-30.6h0ZM222.75,67.76c0,7.16-5.95,13.02-13.23,13.02h-16.65c-7.27,0-13.23-5.86-13.23-13.02v-10.88c0-7.16,5.95-13.02,13.23-13.02h16.65c7.27,0,13.23,5.86,13.23,13.02v10.88Z' fill='%23195050'%3E%3C/path%3E%3Cpath d='M139.23,31.64v36.11c0,7.16-5.95,13.02-13.23,13.02h-14.04c-7.27,0-13.23-5.86-13.23-13.02V31.64h-13.55v30.82c.08,18.35,11.03,31.43,33.61,31.43s34-13.04,34.08-31.43v-30.82h-13.64Z' fill='%23195050'%3E%3C/path%3E%3Cpath d='M73.1,62.3s0-.1,0-.14c0-18.49-13.68-31.42-35.2-31.42S2.8,43.71,2.8,62.16s12.45,31.61,35.1,31.61c8.83,0,16.12-2,21.73-5.53v5.52s2.45,16.15-13.89,16.15h-26.54v12.63l26.54-1.22c15.86-.63,27.38-10.1,27.35-27.55v-31.46h0ZM59.46,67.62c0,7.16-5.95,13.02-13.23,13.02h-16.65c-7.27,0-13.23-5.86-13.23-13.02v-10.88c0-7.16,5.95-13.02,13.23-13.02h16.65c7.27,0,13.23,5.86,13.23,13.02v10.88Z' fill='%23195050'%3E%3C/path%3E%3Cpath d='M285.61,31.58c-18.65,0-31.5,12.41-31.5,30.85,0,.02,0,.05,0,.07v30.53h13.55v-36.03c0-7.16,5-13.02,13.23-13.02h15.68v-12.44l-10.96.03Z' fill='%23195050'%3E%3C/path%3E%3Cpath d='M511.47,92.91h-16.57s28.29-31.34,28.74-31.82c-.45-.36-27.4-29.54-27.4-29.54h17.31l17.42,19.46c.45.6,1.19.84,2.08.84s1.49-.24,1.94-.84l16.83-19.46h16.57s-26.51,29.18-26.95,29.54c1.04.84,28.29,31.82,28.29,31.82h-16.42l-18.91-22.22c-.45-.6-1.04-.84-1.79-.84s-1.34.24-1.79.84l-19.36,22.22Z' fill='%23195050'%3E%3C/path%3E%3Crect x='469.64' y='31.58' width='13.8' height='61.41' transform='translate(953.08 124.56) rotate(-180)' fill='%23195050'%3E%3C/rect%3E%3Cpath d='M450.52,31.54s0,7.42,0,12.4l-44.45.02c-3.33,0-10.53-.25-10.53,5.62s6.53,5.51,10.25,5.51l24.08.03c12.29,0,23.58,4.84,23.58,18.98,0,13.72-11.09,18.95-23.46,18.95l-41.51-.04v-12.01s45.06-.03,45.06-.03c2.94,0,9.87-.19,9.87-6.25,0-5.86-5.97-6.09-9.83-6.09l-24.17-.07c-6.55,0-23.43-2.09-23.43-18.5,0-15.23,13.77-18.56,23.4-18.56l41.13.06Z' fill='%23195050'%3E%3C/path%3E%3C/svg%3E");
+  --wm:url("data:image/svg+xml,%3Csvg width='389.62' height='311.43' viewBox='0 0 389.62 311.43' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' id='Layer_1' overflow='hidden'%3E%3Cpath d='M183.09 155.83C183.09 155.72 183.09 155.61 183.09 155.5 183.09 113.25 151.83 83.68 102.64 83.68 53.45 83.68 22.42 113.35 22.42 155.5 22.42 197.65 50.87 227.74 102.65 227.74 122.83 227.74 139.48 223.17 152.31 215.1L152.31 227.73C152.31 227.73 157.91 264.64 120.57 264.64L59.91 264.64 59.91 293.5 120.57 290.71C156.82 289.26 183.15 267.62 183.09 227.73L183.09 155.81 183.09 155.81ZM151.91 167.99C151.91 184.36 138.31 197.75 121.68 197.75L83.63 197.75C67 197.75 53.4 184.36 53.4 167.99L53.4 143.11C53.4 126.74 67 113.35 83.63 113.35L121.68 113.35C138.31 113.35 151.91 126.74 151.91 143.11L151.91 167.99Z' stroke='none' stroke-width='1' stroke-linecap='butt' stroke-linejoin='miter' stroke-miterlimit='4' fill='%23003232' fill-opacity='0.14'/%3E%3Cpath d='M206.53 155.59C206.53 155.7 206.53 155.81 206.53 155.92 206.53 198.17 237.79 227.74 286.98 227.74 336.17 227.74 367.21 198.07 367.21 155.92 367.21 113.77 338.76 83.68 286.98 83.68 266.8 83.68 250.15 88.25 237.32 96.32L237.32 83.69C237.32 83.69 231.72 46.78 269.06 46.78L329.72 46.78C329.72 46.78 329.72 17.92 329.72 17.92L269.06 20.71C232.81 22.16 206.48 43.8 206.54 83.69L206.54 155.61C206.54 155.61 206.54 155.6 206.54 155.6ZM237.7 143.43C237.7 127.06 251.3 113.67 267.93 113.67L305.98 113.67C322.61 113.67 336.21 127.06 336.21 143.43L336.21 168.31C336.21 184.68 322.61 198.07 305.98 198.07L267.93 198.07C251.3 198.07 237.7 184.68 237.7 168.31L237.7 143.43Z' stroke='none' stroke-width='1' stroke-linecap='butt' stroke-linejoin='miter' stroke-miterlimit='4' fill='%23003232' fill-opacity='0.14'/%3E%3C/svg%3E");
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+  --bg:#003232; --surface:#195050; --surface-2:#0A4444; --inset:#002828; --input:#002828; --page:#003232;
+  --line:rgba(235,235,235,.14); --line-strong:rgba(235,235,235,.4);
+  --fg:#EBEBEB; --body:#B7C4C4; --muted:#B7C4C4; --muted-surface:#B7C4C4; --eyebrow:#B7C4C4;
+  --accent-text:#D2FF00; --hl-bg:transparent; --hl-fg:#D2FF00; --link:#D2FF00; --focus-line:#D2FF00;
+  --sel-bg:#EBEBEB; --sel-fg:#003232; --hover:rgba(235,235,235,.08);
+  --good-text:#08B8B7; --good-tint:rgba(8,184,183,.22); --bad-text:#FF8163; --bad-tint:rgba(255,129,99,.22);
+  --pill-good-bg:#08B8B7; --pill-good-fg:#003232; --pill-bad-bg:#FF8163; --pill-bad-fg:#003232;
+  --series-1:#B7C4C4; --series-2:#08B8B7; --ally-1:#EBEBEB; --ally-1-ink:#003232;
+  --disc:#195050; --track:#002828;
+  --shadow-1:0 1px 2px rgba(0,0,0,.32);
+  --shadow-2:0 4px 12px rgba(0,0,0,.36);
+  --shadow-3:0 12px 32px rgba(0,0,0,.4);
+  --logo:url("data:image/svg+xml,%3Csvg id='Layer_1' xmlns='http://www.w3.org/2000/svg' width='202mm' height='44mm' viewBox='0 0 572.6 124.72'%3E%3Cpath d='M370.89,62.14V1.95h-13.52v34.65c-5.72-3.66-13.07-5.74-21.67-5.74-21.52,0-35.1,12.98-35.1,31.42s12.45,31.61,35.1,31.61,35.2-13.12,35.2-31.61c0-.05,0-.1,0-.15ZM357.25,67.75c0,7.16-5.95,13.02-13.23,13.02h-16.65c-7.27,0-13.23-5.86-13.23-13.02v-10.88c0-7.16,5.95-13.02,13.23-13.02h16.65c7.27,0,13.23,5.86,13.23,13.02v10.88Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M236.39,62.44s0-.1,0-.14c0-18.49-13.68-31.42-35.2-31.42s-35.1,12.98-35.1,31.42,12.45,31.61,35.1,31.61c8.83,0,16.12-2,21.73-5.53v4.66h13.47v-30.6h0ZM222.75,67.76c0,7.16-5.95,13.02-13.23,13.02h-16.65c-7.27,0-13.23-5.86-13.23-13.02v-10.88c0-7.16,5.95-13.02,13.23-13.02h16.65c7.27,0,13.23,5.86,13.23,13.02v10.88Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M139.23,31.64v36.11c0,7.16-5.95,13.02-13.23,13.02h-14.04c-7.27,0-13.23-5.86-13.23-13.02V31.64h-13.55v30.82c.08,18.35,11.03,31.43,33.61,31.43s34-13.04,34.08-31.43v-30.82h-13.64Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M73.1,62.3s0-.1,0-.14c0-18.49-13.68-31.42-35.2-31.42S2.8,43.71,2.8,62.16s12.45,31.61,35.1,31.61c8.83,0,16.12-2,21.73-5.53v5.52s2.45,16.15-13.89,16.15h-26.54v12.63l26.54-1.22c15.86-.63,27.38-10.1,27.35-27.55v-31.46h0ZM59.46,67.62c0,7.16-5.95,13.02-13.23,13.02h-16.65c-7.27,0-13.23-5.86-13.23-13.02v-10.88c0-7.16,5.95-13.02,13.23-13.02h16.65c7.27,0,13.23,5.86,13.23,13.02v10.88Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M285.61,31.58c-18.65,0-31.5,12.41-31.5,30.85,0,.02,0,.05,0,.07v30.53h13.55v-36.03c0-7.16,5-13.02,13.23-13.02h15.68v-12.44l-10.96.03Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M511.47,92.91h-16.57s28.29-31.34,28.74-31.82c-.45-.36-27.4-29.54-27.4-29.54h17.31l17.42,19.46c.45.6,1.19.84,2.08.84s1.49-.24,1.94-.84l16.83-19.46h16.57s-26.51,29.18-26.95,29.54c1.04.84,28.29,31.82,28.29,31.82h-16.42l-18.91-22.22c-.45-.6-1.04-.84-1.79-.84s-1.34.24-1.79.84l-19.36,22.22Z' fill='%23ebebeb'%3E%3C/path%3E%3Crect x='469.64' y='31.58' width='13.8' height='61.41' transform='translate(953.08 124.56) rotate(-180)' fill='%23ebebeb'%3E%3C/rect%3E%3Cpath d='M450.52,31.54s0,7.42,0,12.4l-44.45.02c-3.33,0-10.53-.25-10.53,5.62s6.53,5.51,10.25,5.51l24.08.03c12.29,0,23.58,4.84,23.58,18.98,0,13.72-11.09,18.95-23.46,18.95l-41.51-.04v-12.01s45.06-.03,45.06-.03c2.94,0,9.87-.19,9.87-6.25,0-5.86-5.97-6.09-9.83-6.09l-24.17-.07c-6.55,0-23.43-2.09-23.43-18.5,0-15.23,13.77-18.56,23.4-18.56l41.13.06Z' fill='%23ebebeb'%3E%3C/path%3E%3C/svg%3E");
+  --wm:url("data:image/svg+xml,%3Csvg width='389.62' height='311.43' viewBox='0 0 389.62 311.43' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' id='Layer_1' overflow='hidden'%3E%3Cpath d='M183.09 155.83C183.09 155.72 183.09 155.61 183.09 155.5 183.09 113.25 151.83 83.68 102.64 83.68 53.45 83.68 22.42 113.35 22.42 155.5 22.42 197.65 50.87 227.74 102.65 227.74 122.83 227.74 139.48 223.17 152.31 215.1L152.31 227.73C152.31 227.73 157.91 264.64 120.57 264.64L59.91 264.64 59.91 293.5 120.57 290.71C156.82 289.26 183.15 267.62 183.09 227.73L183.09 155.81 183.09 155.81ZM151.91 167.99C151.91 184.36 138.31 197.75 121.68 197.75L83.63 197.75C67 197.75 53.4 184.36 53.4 167.99L53.4 143.11C53.4 126.74 67 113.35 83.63 113.35L121.68 113.35C138.31 113.35 151.91 126.74 151.91 143.11L151.91 167.99Z' stroke='none' stroke-width='1' stroke-linecap='butt' stroke-linejoin='miter' stroke-miterlimit='4' fill='%23ffffff' fill-opacity='0.16'/%3E%3Cpath d='M206.53 155.59C206.53 155.7 206.53 155.81 206.53 155.92 206.53 198.17 237.79 227.74 286.98 227.74 336.17 227.74 367.21 198.07 367.21 155.92 367.21 113.77 338.76 83.68 286.98 83.68 266.8 83.68 250.15 88.25 237.32 96.32L237.32 83.69C237.32 83.69 231.72 46.78 269.06 46.78L329.72 46.78C329.72 46.78 329.72 17.92 329.72 17.92L269.06 20.71C232.81 22.16 206.48 43.8 206.54 83.69L206.54 155.61C206.54 155.61 206.54 155.6 206.54 155.6ZM237.7 143.43C237.7 127.06 251.3 113.67 267.93 113.67L305.98 113.67C322.61 113.67 336.21 127.06 336.21 143.43L336.21 168.31C336.21 184.68 322.61 198.07 305.98 198.07L267.93 198.07C251.3 198.07 237.7 184.68 237.7 168.31L237.7 143.43Z' stroke='none' stroke-width='1' stroke-linecap='butt' stroke-linejoin='miter' stroke-miterlimit='4' fill='%23ffffff' fill-opacity='0.16'/%3E%3C/svg%3E");
+  color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#003232; --surface:#195050; --surface-2:#0A4444; --inset:#002828; --input:#002828; --page:#003232;
+  --line:rgba(235,235,235,.14); --line-strong:rgba(235,235,235,.4);
+  --fg:#EBEBEB; --body:#B7C4C4; --muted:#B7C4C4; --muted-surface:#B7C4C4; --eyebrow:#B7C4C4;
+  --accent-text:#D2FF00; --hl-bg:transparent; --hl-fg:#D2FF00; --link:#D2FF00; --focus-line:#D2FF00;
+  --sel-bg:#EBEBEB; --sel-fg:#003232; --hover:rgba(235,235,235,.08);
+  --good-text:#08B8B7; --good-tint:rgba(8,184,183,.22); --bad-text:#FF8163; --bad-tint:rgba(255,129,99,.22);
+  --pill-good-bg:#08B8B7; --pill-good-fg:#003232; --pill-bad-bg:#FF8163; --pill-bad-fg:#003232;
+  --series-1:#B7C4C4; --series-2:#08B8B7; --ally-1:#EBEBEB; --ally-1-ink:#003232;
+  --disc:#195050; --track:#002828;
+  --shadow-1:0 1px 2px rgba(0,0,0,.32);
+  --shadow-2:0 4px 12px rgba(0,0,0,.36);
+  --shadow-3:0 12px 32px rgba(0,0,0,.4);
+  --logo:url("data:image/svg+xml,%3Csvg id='Layer_1' xmlns='http://www.w3.org/2000/svg' width='202mm' height='44mm' viewBox='0 0 572.6 124.72'%3E%3Cpath d='M370.89,62.14V1.95h-13.52v34.65c-5.72-3.66-13.07-5.74-21.67-5.74-21.52,0-35.1,12.98-35.1,31.42s12.45,31.61,35.1,31.61,35.2-13.12,35.2-31.61c0-.05,0-.1,0-.15ZM357.25,67.75c0,7.16-5.95,13.02-13.23,13.02h-16.65c-7.27,0-13.23-5.86-13.23-13.02v-10.88c0-7.16,5.95-13.02,13.23-13.02h16.65c7.27,0,13.23,5.86,13.23,13.02v10.88Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M236.39,62.44s0-.1,0-.14c0-18.49-13.68-31.42-35.2-31.42s-35.1,12.98-35.1,31.42,12.45,31.61,35.1,31.61c8.83,0,16.12-2,21.73-5.53v4.66h13.47v-30.6h0ZM222.75,67.76c0,7.16-5.95,13.02-13.23,13.02h-16.65c-7.27,0-13.23-5.86-13.23-13.02v-10.88c0-7.16,5.95-13.02,13.23-13.02h16.65c7.27,0,13.23,5.86,13.23,13.02v10.88Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M139.23,31.64v36.11c0,7.16-5.95,13.02-13.23,13.02h-14.04c-7.27,0-13.23-5.86-13.23-13.02V31.64h-13.55v30.82c.08,18.35,11.03,31.43,33.61,31.43s34-13.04,34.08-31.43v-30.82h-13.64Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M73.1,62.3s0-.1,0-.14c0-18.49-13.68-31.42-35.2-31.42S2.8,43.71,2.8,62.16s12.45,31.61,35.1,31.61c8.83,0,16.12-2,21.73-5.53v5.52s2.45,16.15-13.89,16.15h-26.54v12.63l26.54-1.22c15.86-.63,27.38-10.1,27.35-27.55v-31.46h0ZM59.46,67.62c0,7.16-5.95,13.02-13.23,13.02h-16.65c-7.27,0-13.23-5.86-13.23-13.02v-10.88c0-7.16,5.95-13.02,13.23-13.02h16.65c7.27,0,13.23,5.86,13.23,13.02v10.88Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M285.61,31.58c-18.65,0-31.5,12.41-31.5,30.85,0,.02,0,.05,0,.07v30.53h13.55v-36.03c0-7.16,5-13.02,13.23-13.02h15.68v-12.44l-10.96.03Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M511.47,92.91h-16.57s28.29-31.34,28.74-31.82c-.45-.36-27.4-29.54-27.4-29.54h17.31l17.42,19.46c.45.6,1.19.84,2.08.84s1.49-.24,1.94-.84l16.83-19.46h16.57s-26.51,29.18-26.95,29.54c1.04.84,28.29,31.82,28.29,31.82h-16.42l-18.91-22.22c-.45-.6-1.04-.84-1.79-.84s-1.34.24-1.79.84l-19.36,22.22Z' fill='%23ebebeb'%3E%3C/path%3E%3Crect x='469.64' y='31.58' width='13.8' height='61.41' transform='translate(953.08 124.56) rotate(-180)' fill='%23ebebeb'%3E%3C/rect%3E%3Cpath d='M450.52,31.54s0,7.42,0,12.4l-44.45.02c-3.33,0-10.53-.25-10.53,5.62s6.53,5.51,10.25,5.51l24.08.03c12.29,0,23.58,4.84,23.58,18.98,0,13.72-11.09,18.95-23.46,18.95l-41.51-.04v-12.01s45.06-.03,45.06-.03c2.94,0,9.87-.19,9.87-6.25,0-5.86-5.97-6.09-9.83-6.09l-24.17-.07c-6.55,0-23.43-2.09-23.43-18.5,0-15.23,13.77-18.56,23.4-18.56l41.13.06Z' fill='%23ebebeb'%3E%3C/path%3E%3C/svg%3E");
+  --wm:url("data:image/svg+xml,%3Csvg width='389.62' height='311.43' viewBox='0 0 389.62 311.43' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' id='Layer_1' overflow='hidden'%3E%3Cpath d='M183.09 155.83C183.09 155.72 183.09 155.61 183.09 155.5 183.09 113.25 151.83 83.68 102.64 83.68 53.45 83.68 22.42 113.35 22.42 155.5 22.42 197.65 50.87 227.74 102.65 227.74 122.83 227.74 139.48 223.17 152.31 215.1L152.31 227.73C152.31 227.73 157.91 264.64 120.57 264.64L59.91 264.64 59.91 293.5 120.57 290.71C156.82 289.26 183.15 267.62 183.09 227.73L183.09 155.81 183.09 155.81ZM151.91 167.99C151.91 184.36 138.31 197.75 121.68 197.75L83.63 197.75C67 197.75 53.4 184.36 53.4 167.99L53.4 143.11C53.4 126.74 67 113.35 83.63 113.35L121.68 113.35C138.31 113.35 151.91 126.74 151.91 143.11L151.91 167.99Z' stroke='none' stroke-width='1' stroke-linecap='butt' stroke-linejoin='miter' stroke-miterlimit='4' fill='%23ffffff' fill-opacity='0.16'/%3E%3Cpath d='M206.53 155.59C206.53 155.7 206.53 155.81 206.53 155.92 206.53 198.17 237.79 227.74 286.98 227.74 336.17 227.74 367.21 198.07 367.21 155.92 367.21 113.77 338.76 83.68 286.98 83.68 266.8 83.68 250.15 88.25 237.32 96.32L237.32 83.69C237.32 83.69 231.72 46.78 269.06 46.78L329.72 46.78C329.72 46.78 329.72 17.92 329.72 17.92L269.06 20.71C232.81 22.16 206.48 43.8 206.54 83.69L206.54 155.61C206.54 155.61 206.54 155.6 206.54 155.6ZM237.7 143.43C237.7 127.06 251.3 113.67 267.93 113.67L305.98 113.67C322.61 113.67 336.21 127.06 336.21 143.43L336.21 168.31C336.21 184.68 322.61 198.07 305.98 198.07L267.93 198.07C251.3 198.07 237.7 184.68 237.7 168.31L237.7 143.43Z' stroke='none' stroke-width='1' stroke-linecap='butt' stroke-linejoin='miter' stroke-miterlimit='4' fill='%23ffffff' fill-opacity='0.16'/%3E%3C/svg%3E");
+  color-scheme:dark;
+}
+/* title, section and closing slides always sit on the deep-green gradient */
+.slide.deep{
+  --bg:#003232; --surface:#195050; --surface-2:#0A4444; --inset:#002828; --input:#002828; --page:#003232;
+  --line:rgba(235,235,235,.14); --line-strong:rgba(235,235,235,.4);
+  --fg:#EBEBEB; --body:#B7C4C4; --muted:#B7C4C4; --muted-surface:#B7C4C4; --eyebrow:#B7C4C4;
+  --accent-text:#D2FF00; --hl-bg:transparent; --hl-fg:#D2FF00; --link:#D2FF00; --focus-line:#D2FF00;
+  --sel-bg:#EBEBEB; --sel-fg:#003232; --hover:rgba(235,235,235,.08);
+  --good-text:#08B8B7; --good-tint:rgba(8,184,183,.22); --bad-text:#FF8163; --bad-tint:rgba(255,129,99,.22);
+  --pill-good-bg:#08B8B7; --pill-good-fg:#003232; --pill-bad-bg:#FF8163; --pill-bad-fg:#003232;
+  --series-1:#B7C4C4; --series-2:#08B8B7; --ally-1:#EBEBEB; --ally-1-ink:#003232;
+  --disc:#195050; --track:#002828;
+  --shadow-1:0 1px 2px rgba(0,0,0,.32);
+  --shadow-2:0 4px 12px rgba(0,0,0,.36);
+  --shadow-3:0 12px 32px rgba(0,0,0,.4);
+  --logo:url("data:image/svg+xml,%3Csvg id='Layer_1' xmlns='http://www.w3.org/2000/svg' width='202mm' height='44mm' viewBox='0 0 572.6 124.72'%3E%3Cpath d='M370.89,62.14V1.95h-13.52v34.65c-5.72-3.66-13.07-5.74-21.67-5.74-21.52,0-35.1,12.98-35.1,31.42s12.45,31.61,35.1,31.61,35.2-13.12,35.2-31.61c0-.05,0-.1,0-.15ZM357.25,67.75c0,7.16-5.95,13.02-13.23,13.02h-16.65c-7.27,0-13.23-5.86-13.23-13.02v-10.88c0-7.16,5.95-13.02,13.23-13.02h16.65c7.27,0,13.23,5.86,13.23,13.02v10.88Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M236.39,62.44s0-.1,0-.14c0-18.49-13.68-31.42-35.2-31.42s-35.1,12.98-35.1,31.42,12.45,31.61,35.1,31.61c8.83,0,16.12-2,21.73-5.53v4.66h13.47v-30.6h0ZM222.75,67.76c0,7.16-5.95,13.02-13.23,13.02h-16.65c-7.27,0-13.23-5.86-13.23-13.02v-10.88c0-7.16,5.95-13.02,13.23-13.02h16.65c7.27,0,13.23,5.86,13.23,13.02v10.88Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M139.23,31.64v36.11c0,7.16-5.95,13.02-13.23,13.02h-14.04c-7.27,0-13.23-5.86-13.23-13.02V31.64h-13.55v30.82c.08,18.35,11.03,31.43,33.61,31.43s34-13.04,34.08-31.43v-30.82h-13.64Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M73.1,62.3s0-.1,0-.14c0-18.49-13.68-31.42-35.2-31.42S2.8,43.71,2.8,62.16s12.45,31.61,35.1,31.61c8.83,0,16.12-2,21.73-5.53v5.52s2.45,16.15-13.89,16.15h-26.54v12.63l26.54-1.22c15.86-.63,27.38-10.1,27.35-27.55v-31.46h0ZM59.46,67.62c0,7.16-5.95,13.02-13.23,13.02h-16.65c-7.27,0-13.23-5.86-13.23-13.02v-10.88c0-7.16,5.95-13.02,13.23-13.02h16.65c7.27,0,13.23,5.86,13.23,13.02v10.88Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M285.61,31.58c-18.65,0-31.5,12.41-31.5,30.85,0,.02,0,.05,0,.07v30.53h13.55v-36.03c0-7.16,5-13.02,13.23-13.02h15.68v-12.44l-10.96.03Z' fill='%23ebebeb'%3E%3C/path%3E%3Cpath d='M511.47,92.91h-16.57s28.29-31.34,28.74-31.82c-.45-.36-27.4-29.54-27.4-29.54h17.31l17.42,19.46c.45.6,1.19.84,2.08.84s1.49-.24,1.94-.84l16.83-19.46h16.57s-26.51,29.18-26.95,29.54c1.04.84,28.29,31.82,28.29,31.82h-16.42l-18.91-22.22c-.45-.6-1.04-.84-1.79-.84s-1.34.24-1.79.84l-19.36,22.22Z' fill='%23ebebeb'%3E%3C/path%3E%3Crect x='469.64' y='31.58' width='13.8' height='61.41' transform='translate(953.08 124.56) rotate(-180)' fill='%23ebebeb'%3E%3C/rect%3E%3Cpath d='M450.52,31.54s0,7.42,0,12.4l-44.45.02c-3.33,0-10.53-.25-10.53,5.62s6.53,5.51,10.25,5.51l24.08.03c12.29,0,23.58,4.84,23.58,18.98,0,13.72-11.09,18.95-23.46,18.95l-41.51-.04v-12.01s45.06-.03,45.06-.03c2.94,0,9.87-.19,9.87-6.25,0-5.86-5.97-6.09-9.83-6.09l-24.17-.07c-6.55,0-23.43-2.09-23.43-18.5,0-15.23,13.77-18.56,23.4-18.56l41.13.06Z' fill='%23ebebeb'%3E%3C/path%3E%3C/svg%3E");
+  --wm:url("data:image/svg+xml,%3Csvg width='389.62' height='311.43' viewBox='0 0 389.62 311.43' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' id='Layer_1' overflow='hidden'%3E%3Cpath d='M183.09 155.83C183.09 155.72 183.09 155.61 183.09 155.5 183.09 113.25 151.83 83.68 102.64 83.68 53.45 83.68 22.42 113.35 22.42 155.5 22.42 197.65 50.87 227.74 102.65 227.74 122.83 227.74 139.48 223.17 152.31 215.1L152.31 227.73C152.31 227.73 157.91 264.64 120.57 264.64L59.91 264.64 59.91 293.5 120.57 290.71C156.82 289.26 183.15 267.62 183.09 227.73L183.09 155.81 183.09 155.81ZM151.91 167.99C151.91 184.36 138.31 197.75 121.68 197.75L83.63 197.75C67 197.75 53.4 184.36 53.4 167.99L53.4 143.11C53.4 126.74 67 113.35 83.63 113.35L121.68 113.35C138.31 113.35 151.91 126.74 151.91 143.11L151.91 167.99Z' stroke='none' stroke-width='1' stroke-linecap='butt' stroke-linejoin='miter' stroke-miterlimit='4' fill='%23ffffff' fill-opacity='0.16'/%3E%3Cpath d='M206.53 155.59C206.53 155.7 206.53 155.81 206.53 155.92 206.53 198.17 237.79 227.74 286.98 227.74 336.17 227.74 367.21 198.07 367.21 155.92 367.21 113.77 338.76 83.68 286.98 83.68 266.8 83.68 250.15 88.25 237.32 96.32L237.32 83.69C237.32 83.69 231.72 46.78 269.06 46.78L329.72 46.78C329.72 46.78 329.72 17.92 329.72 17.92L269.06 20.71C232.81 22.16 206.48 43.8 206.54 83.69L206.54 155.61C206.54 155.61 206.54 155.6 206.54 155.6ZM237.7 143.43C237.7 127.06 251.3 113.67 267.93 113.67L305.98 113.67C322.61 113.67 336.21 127.06 336.21 143.43L336.21 168.31C336.21 184.68 322.61 198.07 305.98 198.07L267.93 198.07C251.3 198.07 237.7 184.68 237.7 168.31L237.7 143.43Z' stroke='none' stroke-width='1' stroke-linecap='butt' stroke-linejoin='miter' stroke-miterlimit='4' fill='%23ffffff' fill-opacity='0.16'/%3E%3C/svg%3E");
+  color-scheme:dark;
+  --page:linear-gradient(90deg,#003232 0%,#1C5653 100%);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{margin:0;background:var(--bg);color:var(--body);font-family:var(--font-sans);font-weight:400;font-size:clamp(15px,min(0.55vw + 11px,1.25vh + 7.5px),20px);line-height:1.5;overflow:hidden;text-rendering:optimizeLegibility}
+::selection{background:#D2FF00;color:#003232}
+h1,h2,h3{font-family:var(--font-sans);margin:0;text-wrap:balance;color:var(--fg)}
+h1{font-size:clamp(2.6rem,6.4vw,6rem);font-weight:600;line-height:1.05;letter-spacing:-0.02em}
+h2{font-size:clamp(1.6rem,3.1vw,3rem);font-weight:600;line-height:1.1;letter-spacing:-0.015em}
+h3{font-size:1.1em;font-weight:600;letter-spacing:-0.01em;line-height:1.25}
+p{margin:0}
+b,strong{font-weight:600;color:var(--fg)}
+ul{margin:0;padding-left:1.2em}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:3px}
+code,kbd{font-family:var(--font-mono);font-size:.9em}
+kbd{border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:4px;padding:0 .35em;background:var(--surface-2);color:var(--fg)}
+.eyebrow{font-family:var(--font-sans);font-weight:600;font-size:.72em;line-height:1.3;letter-spacing:.16em;text-transform:uppercase;color:var(--eyebrow);display:flex;align-items:center;gap:.9em}
+.eyebrow::before{content:"";flex:none;width:28px;height:2px;background:currentColor;opacity:.85}
+.deep .eyebrow::before{background:#D2FF00;opacity:1;width:48px}
+.lede{color:var(--body);font-size:1.1em;max-width:76ch}
+.muted{color:var(--muted)}
+.small{font-size:.85em}
+.mono{font-family:var(--font-mono)}
+.hl{background:var(--hl-bg);color:var(--hl-fg);padding:0 .22em;border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hl-text{color:var(--accent-text);font-weight:600}
+/* role markers: allies in greens, adversaries in coral (text stays in the text colour) */
+.c-alice,.c-bob,.c-eve{color:var(--fg);font-weight:600}
+.c-alice::before,.c-bob::before,.c-eve::before{content:"";display:inline-block;width:.6em;height:.6em;border-radius:50%;margin-right:.4em;vertical-align:.02em}
+.c-alice::before{background:var(--ally-1)} .c-bob::before{background:var(--ally-2)} .c-eve::before{background:var(--adversary)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* Material Symbols Outlined, weight 300 */
+.gs-icon{font-family:'Material Symbols Outlined';font-weight:300;font-style:normal;font-size:1.35em;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;width:1em;height:1em;overflow:hidden;white-space:nowrap;direction:ltr;vertical-align:middle;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;-webkit-font-feature-settings:'liga';font-feature-settings:'liga';user-select:none;flex:none}
+.no-icons .gs-icon{font-family:inherit;font-size:0;width:auto;height:auto;overflow:visible}
+.no-icons .gs-icon::before{content:attr(data-fb);font-size:1rem;font-weight:600}
+
+/* ---------- deck ---------- */
+.deck{position:fixed;inset:0}
+.slide{position:absolute;top:0;left:0;right:0;bottom:calc(var(--bar-h) + env(safe-area-inset-bottom,0px));overflow-y:auto;overflow-x:hidden;
+  background:var(--wm) no-repeat right -13.5vw bottom -20vh / auto 111%, var(--page);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:calc(clamp(50px,7.4vh,84px) + env(safe-area-inset-top,0px)) clamp(16px,3vh,40px);
+  opacity:0;visibility:hidden;transform:translateX(16px);transition:opacity 320ms var(--ease),transform 320ms var(--ease),visibility 0s linear 320ms}
+.slide.before{transform:translateX(-16px)}
+.slide.active{opacity:1;visibility:visible;transform:none;transition:opacity 320ms var(--ease),transform 320ms var(--ease)}
+/* logo: top-left, green 4 on light surfaces, light grey on dark */
+.slide::before{content:"";position:absolute;top:calc(clamp(14px,2.6vh,32px) + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px),min(5vw,96px));height:clamp(22px,2.7vh,30px);aspect-ratio:572.6/124.72;background:var(--logo) no-repeat left center/contain}
+.slide-inner{max-width:1180px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:clamp(14px,2.4vh,28px)}
+.slide-head{display:flex;flex-direction:column;gap:.55em}
+.notes{display:none}
+@media (prefers-reduced-motion: reduce){ .slide,.slide.active{transition:none;transform:none} }
+
+/* title / section / closing layouts */
+.deep .slide-inner{gap:clamp(14px,2.2vh,26px)}
+.hero-title{font-size:clamp(2.6rem,min(6vw,9.5vh),6.2rem);font-weight:500;line-height:1.04;letter-spacing:-0.025em}
+.hero-title .hl{padding:0}
+.breaker .num{font-weight:300;font-size:clamp(4.5rem,11.5vw,13rem);line-height:1;letter-spacing:-0.04em;color:#D2FF00}
+.breaker h1{font-size:clamp(2.4rem,5vw,6rem);font-weight:600;line-height:1.05;letter-spacing:-0.015em}
+.closing h1{font-size:clamp(2.6rem,7.9vw,9rem);font-weight:500;line-height:1;letter-spacing:-0.03em}
+.closing h1 .y{color:#D2FF00}
+
+/* ---------- shared components ---------- */
+.panel,.stage,.goal,details.reveal,.step,.enigma,.part-link,.bar,.notes-panel{--muted:var(--muted-surface)}
+.stage.op,.char-cells,.verdict,.out,.bignum,pre.code,.packet,.lamp,.bit{--muted:var(--body)}
+.btn[aria-pressed="true"],.era[aria-pressed="true"],.parts button[aria-current="true"],.menu li button[aria-current="true"],.ib[aria-pressed="true"]{--fg:var(--sel-fg)}
+.btn.primary,.tag.warn,.prim.on{--fg:#003232}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:clamp(14px,1.6vw,24px);min-width:0;box-shadow:var(--shadow-1)}
+.panel > h3{margin-bottom:.5em}
+.panel.inverse{background:var(--sel-bg);border-color:transparent;color:var(--sel-fg);--fg:var(--sel-fg);--muted:var(--sel-fg)}
+.panel.inverse::before{content:"";display:block;width:48px;height:4px;border-radius:999px;background:#D2FF00;margin-bottom:.8em}
+:root[data-theme="dark"] .panel.inverse::before{background:#195050}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .panel.inverse::before{background:#195050} }
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:clamp(12px,1.6vw,24px);align-items:start}
+.cols-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:clamp(12px,1.4vw,16px)}
+.stack{display:flex;flex-direction:column;gap:.75em;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:.6em;align-items:center}
+.btn{font:inherit;font-size:.88em;font-weight:600;line-height:1.2;display:inline-flex;align-items:center;gap:.45em;padding:.6em 1.05em;border-radius:8px;border:1.5px solid var(--line-strong);background:transparent;color:var(--fg);cursor:pointer;text-decoration:none;transition:background 200ms var(--ease),border-color 200ms var(--ease)}
+.btn:hover{background:var(--hover);border-color:var(--fg);text-decoration:none}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:#D2FF00;border-color:#D2FF00;color:#003232}
+.btn.primary:hover{background:#DCFF33;border-color:#DCFF33}
+.btn[aria-pressed="true"]{background:var(--sel-bg);border-color:var(--sel-bg);color:var(--sel-fg)}
+.btn[aria-pressed="true"] .tag{background:transparent;color:inherit;box-shadow:inset 0 0 0 1px currentColor}
+.btn:disabled{opacity:.5;cursor:default}
+.btn .gs-icon{font-size:1.25em}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:1.5px solid var(--focus-line);outline-offset:1px;box-shadow:0 0 0 4px rgba(210,255,0,.55)}
+label.field{display:flex;flex-direction:column;gap:.35em;font-size:.82em;color:var(--muted);min-width:0}
+input[type="text"],input[type="number"],textarea,select{font:inherit;font-family:var(--font-mono);font-size:.95em;color:var(--fg);background:var(--input);border:1px solid var(--line-strong);border-radius:8px;padding:.55em .75em;width:100%;min-width:0;transition:border-color 200ms var(--ease),box-shadow 200ms var(--ease)}
+textarea{resize:vertical}
+input[type="range"]{accent-color:var(--accent-text);width:100%}
+.out{font-family:var(--font-mono);font-size:1.02em;color:var(--fg);letter-spacing:.06em;word-break:break-all;background:var(--inset);border:1px solid var(--line);border-radius:8px;padding:.55em .75em;min-height:2.4em}
+.hex{font-family:var(--font-mono);font-size:.78em;word-break:break-all;line-height:1.6;color:var(--muted)}
+.tag{font-family:var(--font-sans);font-weight:600;font-size:.62em;line-height:1;letter-spacing:.1em;text-transform:uppercase;display:inline-flex;align-items:center;padding:.6em .9em;border-radius:999px;background:var(--hover);color:var(--fg);white-space:nowrap}
+.tag.good{background:var(--pill-good-bg);color:var(--pill-good-fg)}
+.tag.warn{background:#D2FF00;color:#003232}
+.tag.bad{background:var(--pill-bad-bg);color:var(--pill-bad-fg)}
+.callout{position:relative;padding-top:.85em;max-width:74ch;color:var(--body)}
+.callout::before{content:"";position:absolute;top:0;left:0;width:48px;height:4px;border-radius:999px;background:#D2FF00}
+.big-num{font-weight:500;font-size:clamp(1.6rem,3vw,2.6rem);line-height:1.05;letter-spacing:-0.025em;color:var(--fg)}
+.scroll-x{overflow-x:auto;max-width:100%}
+.verdict{position:relative;font-weight:500;color:var(--fg);padding:.6em .85em .6em 2.1em;border-radius:8px;background:var(--surface-2);border:1px solid var(--line)}
+.verdict::before{content:"";position:absolute;left:.85em;top:1.02em;width:.62em;height:.62em;border-radius:50%;background:var(--gs-g2)}
+.verdict.good{background:var(--good-tint);border-color:color-mix(in srgb,var(--good) 55%,transparent)}
+.verdict.good::before{background:var(--good)}
+.verdict.bad{background:var(--bad-tint);border-color:color-mix(in srgb,var(--bad) 60%,transparent)}
+.verdict.bad::before{background:var(--bad)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:.35em 1em;align-items:baseline;margin:0}
+.kv > dt{color:var(--muted);font-size:.85em}
+.kv > dd{margin:0;font-family:var(--font-mono);min-width:0;word-break:break-all;color:var(--fg)}
+details.reveal{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.85em 1.05em;box-shadow:var(--shadow-1)}
+details.reveal summary{cursor:pointer;font-weight:600;color:var(--fg);list-style:none;display:flex;gap:.6em;align-items:baseline;border-radius:6px}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:"+";font-family:var(--font-mono);color:var(--accent-text);width:1ch}
+details.reveal[open] summary::before{content:"−"}
+details.reveal > div{margin-top:.6em;color:var(--body)}
+
+/* ---------- hero ---------- */
+.era-row{display:flex;flex-wrap:wrap;gap:8px}
+.era{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:.5em .95em;border:1.5px solid var(--line-strong);background:transparent;border-radius:8px;color:var(--fg);cursor:pointer;font:inherit;font-weight:600;font-size:.9em;line-height:1.25;text-decoration:none;transition:background 200ms var(--ease),border-color 200ms var(--ease)}
+.era:hover{background:var(--hover);border-color:var(--fg);text-decoration:none}
+.era small{color:var(--muted);font-size:.72em;font-weight:500}
+.era[aria-pressed="true"]{background:var(--sel-bg);border-color:var(--sel-bg);color:var(--sel-fg)}
+.era[aria-pressed="true"] small{color:inherit;opacity:.8}
+.hero-out{font-family:var(--font-mono);font-size:clamp(1.3rem,min(3.4vw,5vh),2.8rem);color:var(--fg);letter-spacing:.1em;word-break:break-all;min-height:2.2em;display:flex;align-items:center;margin-top:.3em}
+.hero-out.long{font-size:clamp(.8rem,1.5vw,1.25rem);letter-spacing:.04em}
+.hero-cap{color:var(--muted)}
+.hero-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px}
+.part-link{display:flex;flex-direction:column;gap:.25em;text-decoration:none;color:var(--fg);padding:1em 1.15em;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:var(--shadow-1);transition:border-color 200ms var(--ease),box-shadow 200ms var(--ease)}
+.part-link:hover{border-color:var(--gs-g2);box-shadow:var(--shadow-2);text-decoration:none}
+.part-link b{font-size:1.15em;font-weight:600}
+.part-link span{color:var(--muted);font-size:.88em}
+.hint{color:var(--muted);font-size:.82em}
+@media (max-height:800px) and (min-width:761px){ .hint{display:none} }
+
+/* ---------- cast / channel ---------- */
+.channel{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:clamp(8px,2vw,24px)}
+.party{display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:600;font-size:.9em;color:var(--fg)}
+.avatar{width:clamp(44px,5vw,68px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:1.5em;font-weight:600;color:#003232}
+.av-alice{background:var(--ally-1);color:var(--ally-1-ink)} .av-bob{background:var(--ally-2)} .av-eve,.av-mal{background:var(--adversary)}
+.wire{position:relative;height:130px;min-width:0}
+.wire::before{content:"";position:absolute;left:0;right:0;top:62%;border-top:2px dashed var(--line-strong)}
+.packet{position:absolute;top:62%;left:0;transform:translateY(-50%);background:var(--surface-2);border:1px solid var(--line-strong);border-radius:8px;padding:.35em .6em;font-family:var(--font-mono);font-size:.78em;color:var(--fg);white-space:nowrap;line-height:1.3}
+.packet .from{display:block;color:var(--muted);font-size:.85em}
+.attacker{position:absolute;left:50%;top:0;transform:translateX(-50%);display:flex;align-items:center;gap:6px;font-size:.8em;font-weight:600;color:var(--fg);white-space:nowrap}
+.attacker .avatar{width:34px;font-size:1em}
+.goal{border:1px solid var(--line);border-radius:12px;padding:.85em 1.05em;background:var(--surface);box-shadow:var(--shadow-1);transition:border-color 200ms var(--ease),background 200ms var(--ease)}
+.goal.on{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,var(--surface))}
+.goal h3{display:flex;justify-content:space-between;align-items:center;gap:.5em}
+.goal p{color:var(--muted);font-size:.9em;margin-top:.35em}
+.goal.on p{color:var(--fg)}
+
+/* ---------- pipeline ---------- */
+.pipeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.85em;display:flex;flex-direction:column;gap:.55em;min-width:0;box-shadow:var(--shadow-1)}
+.stage .eyebrow{font-size:.64em;letter-spacing:.12em;color:var(--muted)}
+.stage .eyebrow::before{display:none}
+.stage.op{background:var(--surface-2)}
+.term-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:.6em 1.4em}
+.term-list div b{font-family:var(--font-mono);color:var(--fg);font-weight:600}
+.term-list div{font-size:.92em;color:var(--body)}
+
+/* ---------- caesar wheel ---------- */
+.wheel{width:100%;max-width:440px;margin:0 auto;display:block}
+.wheel text{font-family:var(--font-mono);font-size:15px;text-anchor:middle;dominant-baseline:central}
+.wheel .outer text{fill:var(--fg)}
+.wheel .inner text{fill:#D2FF00}
+.wheel text.lit{fill:#003232;font-weight:600}
+.wheel circle.ring{fill:none;stroke:var(--line-strong)}
+.wheel circle.disc{fill:var(--disc);stroke:none}
+.wheel circle.hub{fill:none;stroke:rgba(235,235,235,.28)}
+.wheel circle.mark{fill:#D2FF00;stroke:var(--gs-g4);stroke-width:1.5}
+.wheel .pointer{fill:var(--fg)}
+.wheel .hub-label{fill:#B7C4C4;font-family:var(--font-sans);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+.wheel .hub-num{fill:#D2FF00;font-family:var(--font-sans);font-size:32px;font-weight:500}
+#wheelInner{transition:transform 320ms var(--ease)}
+@media (prefers-reduced-motion: reduce){ #wheelInner{transition:none} }
+
+/* ---------- brute force ---------- */
+.bf-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:1px 14px;font-family:var(--font-mono);font-size:.76em;line-height:1.3;color:var(--body)}
+.bf-row{display:flex;gap:.8em;padding:.12em .4em;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity 200ms var(--ease)}
+.bf-row.show{opacity:1}
+.bf-row b{color:var(--muted);font-weight:400}
+.bf-row.best{background:var(--good-tint);color:var(--fg);font-weight:600;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--good) 55%,transparent)}
+.bf-row.best b{color:inherit;font-weight:600}
+.bf-row.best{grid-column:1 / -1;white-space:normal;overflow:visible}
+
+/* ---------- substitution / frequency ---------- */
+.keymap{display:grid;grid-template-columns:auto repeat(26,minmax(1.35em,1fr));gap:2px;font-family:var(--font-mono);font-size:.8em;text-align:center;min-width:620px;color:var(--body)}
+.keymap span{padding:.2em 0}
+.keymap .k2{color:var(--fg);font-weight:600;background:var(--surface-2);border-radius:4px}
+.keymap .lab{color:var(--muted);text-align:left;padding-right:.6em;font-family:var(--font-sans);font-size:.85em}
+.bars{display:flex;align-items:flex-end;gap:3px;height:clamp(60px,9.5vh,92px)}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.bars .b i{display:block;width:100%;background:var(--series-1);border-radius:2px 2px 0 0;min-height:1px}
+.bars.cip .b i{background:var(--series-2)}
+.bars .b span{font-family:var(--font-mono);font-size:.62em;color:var(--muted);margin-top:2px}
+.decode{font-family:var(--font-mono);font-size:.82em;line-height:1.6;letter-spacing:.04em;word-break:break-word}
+.decode .u{color:var(--muted)}
+.decode .g{color:var(--accent-text);font-weight:600}
+.sheet{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:6px}
+.sheet .cell{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--font-mono);font-size:.8em;color:var(--fg)}
+.sheet .cell small{color:var(--muted);font-size:.75em}
+.sheet input{width:100%;text-align:center;padding:.25em 0;text-transform:uppercase;font-size:.95em;border-radius:4px}
+.sheet input.dup{border-color:var(--bad);box-shadow:0 0 0 2px var(--bad-tint)}
+@media (max-width:640px){ .sheet{grid-template-columns:repeat(7,minmax(0,1fr))} }
+@media (min-width:1100px){ .sheet{grid-template-columns:repeat(26,minmax(0,1fr));gap:4px} }
+
+/* ---------- vigenere ---------- */
+.vtable{display:grid;grid-auto-flow:column;grid-template-rows:repeat(3,auto);gap:2px 3px;font-family:var(--font-mono);font-size:.95em;text-align:center;width:max-content}
+.vtable span{padding:.2em .35em;border-radius:4px;min-width:1.6em}
+.vtable .p{color:var(--body)} .vtable .k{color:var(--fg);background:var(--surface-2)} .vtable .c{color:var(--fg);font-weight:600;background:var(--hl-bg);color:var(--hl-fg)}
+.vtable .lab{color:var(--muted);font-family:var(--font-sans);font-size:.7em;text-align:left;align-self:center;background:none;font-weight:400}
+.ioc{display:flex;align-items:baseline;gap:.6em;flex-wrap:wrap}
+
+/* ---------- enigma ---------- */
+.enigma{display:flex;flex-direction:column;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:clamp(12px,1.6vw,24px);box-shadow:var(--shadow-1)}
+.rotors{display:flex;gap:clamp(10px,2vw,24px);align-items:center}
+.rotor{display:flex;flex-direction:column;align-items:center;gap:4px}
+.rotor small{color:var(--muted);font-size:.68em;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.rotor button{font:inherit;background:none;border:1px solid var(--line-strong);color:var(--body);border-radius:4px;width:2.4em;height:1.5em;cursor:pointer;display:grid;place-items:center;padding:0}
+.rotor button:hover{color:var(--fg);border-color:var(--fg);background:var(--hover)}
+.rotor button .gs-icon{font-size:1.2em}
+.rotor-win{font-family:var(--font-mono);font-size:1.7em;font-weight:600;color:var(--fg);width:1.8em;text-align:center;background:var(--inset);border:2px solid var(--accent-text);border-radius:8px;padding:.1em 0}
+.lampboard,.keyboard{display:flex;flex-direction:column;gap:6px;align-items:center}
+.lrow{display:flex;gap:6px}
+.lamp{width:clamp(1.7em,2.6vw,2.3em);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-size:.82em;border:1px solid var(--line-strong);color:var(--body);background:var(--inset);transition:background 120ms var(--ease),box-shadow 120ms var(--ease),color 120ms var(--ease)}
+.lamp.on{background:#D2FF00;color:#003232;font-weight:600;box-shadow:0 0 0 3px rgba(210,255,0,.45),0 0 18px rgba(210,255,0,.7);border-color:#195050}
+.key{width:clamp(1.7em,2.6vw,2.3em);aspect-ratio:1;border-radius:50%;font:inherit;font-family:var(--font-mono);font-size:.82em;border:1px solid var(--line-strong);border-bottom-width:3px;background:var(--surface-2);color:var(--fg);cursor:pointer;padding:0}
+.key:hover{border-color:var(--fg)}
+.key:active,.key.down{transform:translateY(2px);border-bottom-width:1px}
+.tape{font-family:var(--font-mono);letter-spacing:.12em;word-break:break-all;min-height:1.6em}
+.path{font-family:var(--font-mono);font-size:.8em;color:var(--muted);line-height:1.9}
+.path b{color:var(--fg)}
+
+/* ---------- crib ---------- */
+.crib-wrap{overflow-x:auto;padding-bottom:6px}
+.crib-grid{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;gap:3px;width:max-content;font-family:var(--font-mono);font-size:.9em}
+.crib-grid span{width:1.75em;text-align:center;padding:.25em 0;border-radius:4px}
+.crib-grid .ci{background:var(--surface-2);color:var(--fg)}
+.crib-grid .cr{color:var(--fg);font-weight:600}
+.crib-grid .cr.clash{background:#FF8163;color:#003232}
+.crib-grid .ix{color:var(--muted);font-size:.6em}
+.strip{display:flex;flex-wrap:wrap;gap:4px}
+.strip button{width:1.9em;height:1.9em;border-radius:4px;border:1px solid var(--line-strong);font:inherit;font-family:var(--font-mono);font-size:.62em;cursor:pointer;color:var(--fg);background:color-mix(in srgb,var(--good) 32%,var(--surface));padding:0}
+.strip button.no{background:color-mix(in srgb,var(--bad) 30%,var(--surface))}
+.strip button.sel{outline:2px solid var(--accent-text);outline-offset:1px}
+
+/* ---------- xor / otp ---------- */
+.bits{display:grid;grid-template-columns:5.5em repeat(8,minmax(1.6em,2.2em)) auto;gap:4px;align-items:center;font-family:var(--font-mono);font-size:.9em;color:var(--fg)}
+.bits .lab{color:var(--muted);font-family:var(--font-sans);font-size:.78em}
+.bit{aspect-ratio:1;display:grid;place-items:center;border-radius:4px;border:1px solid var(--line);background:var(--inset)}
+.bit.one{background:var(--surface-2);color:var(--fg);font-weight:600}
+.bit.zero{color:var(--body)}
+button.bit{font:inherit;cursor:pointer;color:var(--fg);border:1.5px solid var(--accent-text);background:var(--input)}
+button.bit.one{background:#D2FF00;color:#003232;border-color:#195050}
+.bits .ch{padding-left:.6em;color:var(--fg)}
+.bits .sep{grid-column:1 / -1;border-top:1px solid var(--line-strong);margin:2px 0}
+.canv-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px}
+.canv-row figure{margin:0;display:flex;flex-direction:column;gap:.35em;min-width:0}
+.canv-row figcaption{font-size:.8em;color:var(--muted)}
+.canv-row canvas{width:100%;max-width:min(100%,38vh);height:auto;image-rendering:pixelated;border-radius:8px;border:1px solid var(--line-strong);background:var(--bg)}
+
+/* ---------- hashing ---------- */
+.bitgrid{display:grid;grid-template-columns:repeat(32,minmax(0,1fr));gap:2px;max-width:min(640px,70vh)}
+.bitgrid i{aspect-ratio:1;border-radius:2px;background:var(--surface-2)}
+.bitgrid i.d{background:#FF8163}
+.hexdiff{color:var(--fg)}
+.hexdiff .d{color:#003232;font-weight:600;background:#FF8163;border-radius:2px}
+.dup-hash{background:#FF8163;color:#003232!important;font-weight:600;border-radius:4px;padding:0 .4em}
+
+/* ---------- AES / bytes ---------- */
+.bytes{font-family:var(--font-mono);font-size:.82em;line-height:1.7;word-break:break-all;color:var(--fg)}
+.bytes .tg{background:color-mix(in srgb,var(--series-2) 24%,transparent);border-radius:3px;padding:.1em 0}
+.ecb-view canvas{width:100%;max-width:min(560px,66vh);image-rendering:pixelated;border-radius:12px;border:1px solid var(--line-strong);display:block;background:var(--bg)}
+
+/* ---------- key distribution ---------- */
+.kd svg{width:100%;max-width:440px;display:block;margin:0 auto}
+.kd line{stroke:var(--series-1);stroke-opacity:.32}
+.kd circle{fill:var(--ally-1);stroke:var(--bg);stroke-width:1.5}
+
+/* ---------- diffie-hellman ---------- */
+.paint-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 8px;text-align:center}
+.paint-grid .colh{font-weight:600;font-size:.9em}
+.blob{width:clamp(2.2em,min(4vw,6vh),3.4em);aspect-ratio:1;border-radius:50%;margin:0 auto;border:1.5px solid var(--line-strong);transition:background 320ms var(--ease)}
+.paint-grid small{display:block;color:var(--muted);font-size:.72em;margin-top:.3em}
+.swatches{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.swatch{width:1.7em;aspect-ratio:1;border-radius:50%;border:1.5px solid var(--line-strong);cursor:pointer;padding:0}
+.swatch[aria-pressed="true"]{outline:3px solid var(--accent-text);outline-offset:2px}
+.eq{font-family:var(--font-mono);font-size:.88em;line-height:2;color:var(--body)}
+.eq .c-alice,.eq .c-bob{font-family:var(--font-sans)}
+.eq .v{background:var(--hl-bg);color:var(--hl-fg);font-weight:600;padding:0 .25em;border-radius:4px}
+
+/* ---------- RSA ---------- */
+.rsa-steps{display:grid;grid-template-columns:auto 1fr;gap:.4em 1em;font-family:var(--font-mono);font-size:.88em;align-items:baseline;margin:0;color:var(--fg)}
+.rsa-steps dt{color:var(--muted);font-family:var(--font-sans);font-size:.92em}
+.rsa-steps dd{margin:0;min-width:0;word-break:break-all}
+.rsa-steps .pub span{background:color-mix(in srgb,var(--series-2) 20%,transparent);padding:.05em .35em;border-radius:4px}
+.rsa-steps .priv span{background:var(--bad-tint);padding:.05em .35em;border-radius:4px}
+.bignum{font-family:var(--font-mono);font-size:.7em;line-height:1.45;word-break:break-all;max-height:9.5em;overflow-y:auto;color:var(--body);background:var(--inset);border:1px solid var(--line);border-radius:8px;padding:.6em}
+.char-cells{display:flex;flex-wrap:wrap;gap:6px}
+.char-cells div{display:flex;flex-direction:column;align-items:center;font-family:var(--font-mono);font-size:.8em;color:var(--body);background:var(--surface-2);border-radius:4px;padding:.3em .5em;min-width:3.2em}
+.char-cells b{font-size:1.2em}
+.char-cells span{color:var(--fg);font-weight:600}
+.char-cells small{color:var(--body)}
+.char-cells .rep{outline:2px solid #FF8163}
+
+/* ---------- TLS ---------- */
+.prims{display:flex;flex-wrap:wrap;gap:6px}
+.prim{font-family:var(--font-sans);font-weight:600;font-size:.68em;letter-spacing:.04em;padding:.55em .9em;border-radius:999px;border:1px solid var(--line-strong);color:var(--body);transition:background 200ms var(--ease),color 200ms var(--ease),border-color 200ms var(--ease)}
+.prim.on{color:#003232;background:#D2FF00;border-color:#195050}
+.lanes{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+.lane-head{display:grid;grid-template-columns:1fr 1fr;font-weight:600;font-size:1.02em}
+.lane-head span:last-child{text-align:right}
+.tls-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(12px,1.6vw,24px);align-items:start}
+@media (min-width:900px){ .tls-grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr)} }
+#tlsDetail{min-height:9.5em}
+.step{display:flex;flex-wrap:wrap;align-items:baseline;gap:.1em .9em;border:1px solid var(--line);border-radius:8px;padding:.45em .8em;background:var(--surface);opacity:.42;cursor:pointer;transition:opacity 200ms var(--ease),border-color 200ms var(--ease),box-shadow 200ms var(--ease)}
+.step.done{opacity:.8}
+.step.cur{opacity:1;border-color:var(--accent-text);box-shadow:var(--shadow-2),0 0 0 1px var(--accent-text)}
+.step .dir{font-size:.7em;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;gap:.6em;align-items:center;flex-wrap:wrap}
+.step.to-s{margin-right:14%} .step.to-c{margin-left:14%} .step.both{margin-inline:7%}
+.step h3{font-size:.95em;font-family:var(--font-mono);order:1}
+.step .dir{order:2}
+.enc{display:inline-flex;align-items:center;gap:.25em;color:var(--body)}
+.enc .gs-icon{font-size:1.5em}
+
+/* ---------- tables ---------- */
+table.pq{border-collapse:collapse;width:100%;font-size:.9em}
+table.pq th,table.pq td{text-align:left;padding:.42em .7em;border-bottom:1px solid var(--line);vertical-align:middle}
+table.pq th{color:var(--muted);font-weight:600;font-size:.68em;letter-spacing:.1em;text-transform:uppercase}
+table.pq td:first-child{font-weight:600;color:var(--fg)}
+table.pq td:nth-child(2),table.pq td:nth-child(3){white-space:nowrap}
+table.pq tr:last-child td{border-bottom:0}
+
+/* ---------- code / quiz ---------- */
+pre.code{margin:0;font-family:var(--font-mono);font-size:.8em;line-height:1.55;background:var(--inset);border:1px solid var(--line);border-radius:8px;padding:.8em 1em;overflow-x:auto;color:var(--fg)}
+pre.code .cm{color:var(--body);font-style:italic}
+.quiz{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:12px}
+.quiz .panel{display:flex;flex-direction:column;gap:.6em}
+.quiz details.reveal{box-shadow:none;background:var(--surface-2);border-color:transparent;--muted:var(--body)}
+.quiz .ans{color:var(--body);font-size:.9em}
+.quiz .ans b{color:var(--fg)}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px;align-items:start}
+
+/* ---------- control bar: page meta ---------- */
+.bar{position:fixed;left:0;right:0;bottom:0;height:calc(var(--bar-h) + env(safe-area-inset-bottom,0px));padding:4px max(12px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(12px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:12px;background:var(--surface);border-top:1px solid var(--line);z-index:20}
+.track{position:absolute;left:0;right:0;top:0;height:4px;background:var(--track)}
+.progress{position:absolute;left:0;top:0;height:4px;background:#D2FF00;transition:width 320ms var(--ease)}
+.parts{display:flex;gap:6px;align-items:center}
+.parts .dot{width:10px;height:10px;border-radius:50%;background:#D2FF00;box-shadow:0 0 0 1px #195050;flex:none;margin-right:2px}
+.parts button{font:inherit;font-size:.68em;font-weight:600;letter-spacing:.1em;text-transform:uppercase;line-height:1;padding:.7em .95em;border-radius:999px;border:1px solid var(--line-strong);background:none;color:var(--body);cursor:pointer;white-space:nowrap;transition:background 200ms var(--ease)}
+.parts button:hover{background:var(--hover)}
+.parts button[aria-current="true"]{background:var(--sel-bg);border-color:var(--sel-bg);color:var(--sel-fg)}
+.bar .title{flex:1;min-width:0;display:flex;justify-content:center;overflow:hidden}
+.bar .title b{font-weight:600;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.pgno{font-size:.72em;font-weight:600;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
+.icons{display:flex;gap:4px}
+.ib{font:inherit;min-width:2.4em;height:2.4em;padding:0 .4em;border-radius:8px;border:1px solid var(--line-strong);background:transparent;color:var(--fg);cursor:pointer;display:inline-grid;place-items:center;transition:background 200ms var(--ease),border-color 200ms var(--ease)}
+.ib:hover{background:var(--hover);border-color:var(--fg)}
+.ib:disabled{opacity:.4;cursor:default}
+.ib[aria-pressed="true"]{background:var(--sel-bg);border-color:var(--sel-bg);color:var(--sel-fg)}
+@media (max-width:760px){ .parts .long,.ib.opt,.pgno{display:none} }
+
+.notes-panel{position:fixed;left:0;right:0;bottom:calc(var(--bar-h) + env(safe-area-inset-bottom,0px));max-height:38vh;overflow-y:auto;background:var(--surface);border-top:1px solid var(--line-strong);z-index:19;padding:14px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));box-shadow:var(--shadow-3)}
+.notes-panel .nh{display:flex;gap:1.2em;align-items:center;flex-wrap:wrap;margin-bottom:.6em;font-size:.72em;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.notes-panel .nh b{color:var(--fg)}
+.notes-panel .nb{max-width:92ch;font-size:.95em;color:var(--body)}
+.notes-panel .nb p + p{margin-top:.5em}
+
+.menu{position:fixed;inset:0;z-index:30;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow-y:auto;padding:calc(24px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.menu-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:24px;clear:both}
+.menu h2{font-size:1.25em;margin-bottom:.7em;display:flex;align-items:baseline;gap:.8em;flex-wrap:wrap}
+.menu ol{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px}
+.menu li button{font:inherit;width:100%;text-align:left;display:flex;gap:.8em;align-items:center;padding:.5em .7em;border-radius:8px;border:1px solid transparent;background:none;color:var(--fg);cursor:pointer}
+.menu li button:hover{background:var(--hover)}
+.menu li button[aria-current="true"]{background:var(--sel-bg);color:var(--sel-fg)}
+.menu li button[aria-current="true"] .n,.menu li button[aria-current="true"] .m{color:inherit}
+.menu li button[aria-current="true"] .tag{background:transparent;color:inherit;box-shadow:inset 0 0 0 1px currentColor}
+.menu li .n,.menu li .m{font-size:.75em;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.menu li .n{width:2.2ch;text-align:right}
+.menu li .t{flex:1}
+.menu .close{float:right;margin-bottom:12px}
+.out.hl-text{color:var(--accent-text);font-weight:600}
+</style>
+<main class="deck" id="deck">
+
+<!-- ============================ PART 1 ============================ -->
+
+<section class="slide deep active" id="part1" data-title="From Caesar to TLS" data-part="1">
+  <div class="slide-inner">
+    <p class="eyebrow">Knowledge sharing · Cryptography basics</p>
+    <h1 class="hero-title">From Caesar<br>to <span class="hl">TLS</span></h1>
+    <p class="lede">Two thousand years of hiding messages, rebuilt as small experiments you can poke at. Here is one message, encrypted the way each era would have done it.</p>
+    <div class="panel">
+      <div class="era-row" id="eraRow">
+        <button class="era" data-era="plain" aria-pressed="true">Plaintext<small>the message</small></button>
+        <button class="era" data-era="caesar">Caesar<small>~50 BC</small></button>
+        <button class="era" data-era="vigenere">Vigenère<small>1553</small></button>
+        <button class="era" data-era="enigma">Enigma<small>1930s</small></button>
+        <button class="era" data-era="aes">AES-256-GCM<small>2001 → today</small></button>
+      </div>
+      <div class="hero-out" id="heroOut" aria-live="polite">ATTACK AT DAWN</div>
+      <p class="hero-cap" id="heroCap">The message Alice wants to send. Pick an era above.</p>
+    </div>
+    <div class="hero-links">
+      <a class="part-link" href="#classical"><b>Part 1 · Classical ciphers</b><span>Caesar, frequency analysis, Vigenère, Enigma, the one-time pad</span></a>
+      <a class="part-link" href="#part2"><b>Part 2 · Modern cryptography</b><span>Hashes, AES, Diffie–Hellman, RSA, signatures, TLS 1.3</span></a>
+    </div>
+    <p class="hint"><kbd>←</kbd> <kbd>→</kbd> or <kbd>Space</kbd> to move · <kbd>N</kbd> speaker notes · <kbd>M</kbd> slide menu · <kbd>F</kbd> fullscreen · <kbd>T</kbd> light/dark</p>
+  </div>
+  <aside class="notes" data-min="1">
+    <p>Open with the hook: the same four words, five eras. Click through Caesar → AES live. Point out that the Caesar output is still "readable-looking", while AES is just noise plus a tag.</p>
+    <p>Say the plan: Part 1 is about the ideas (and how each cipher got broken). Part 2 is the toolbox we actually use in code. Every slide has something to try.</p>
+  </aside>
+</section>
+
+<section class="slide deep breaker" id="classical" data-title="Part 1 · Classical ciphers" data-part="1">
+  <div class="slide-inner">
+    <div class="num">01</div>
+    <h1>Classical ciphers.</h1>
+    <p class="lede">Two thousand years of clever ideas for hiding a message, and the equally clever ways each one was broken.</p>
+  </div>
+  <aside class="notes" data-min="0.5">
+    <p>Set the frame for Part 1: every cipher here was considered safe in its day. Watch for the pattern in how each one fails, because the same failures come back in modern code.</p>
+  </aside>
+</section>
+
+<section class="slide" id="cast" data-title="Meet the cast" data-part="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">The cast · used in every paper since 1978</p>
+      <h2>Alice wants to talk to Bob. Everyone else is a problem.</h2>
+      <p class="lede">Send the message, then let an attacker loose on the wire. Each attack breaks a different security goal.</p>
+    </header>
+    <div class="panel stack">
+      <div class="channel">
+        <div class="party"><div class="avatar av-alice">A</div>Alice</div>
+        <div class="wire" id="wire">
+          <div class="attacker" id="attacker" hidden><div class="avatar av-eve" id="attAv">E</div><span id="attName">Eve</span></div>
+          <div class="packet" id="packet"><span class="from" id="pkFrom">From: Alice</span><span id="pkBody">Pay Bob $10</span></div>
+        </div>
+        <div class="party"><div class="avatar av-bob">B</div>Bob</div>
+      </div>
+      <div class="row">
+        <button class="btn primary" data-attack="none">Send normally</button>
+        <button class="btn" data-attack="eve">Eve listens</button>
+        <button class="btn" data-attack="tamper">Mallory edits</button>
+        <button class="btn" data-attack="spoof">Mallory pretends to be Alice</button>
+      </div>
+      <p class="verdict" id="castVerdict">Bob receives “Pay Bob $10” from Alice. All good, so far.</p>
+    </div>
+    <div class="cols-3">
+      <div class="goal" id="goal-eve"><h3>Confidentiality <span class="tag">encryption</span></h3><p>Only Bob can read it. Eve sees noise.</p></div>
+      <div class="goal" id="goal-tamper"><h3>Integrity <span class="tag">MAC / AEAD</span></h3><p>Bob can detect any change to the message.</p></div>
+      <div class="goal" id="goal-spoof"><h3>Authenticity <span class="tag">signatures</span></h3><p>Bob can prove the message came from Alice.</p></div>
+    </div>
+  </div>
+  <aside class="notes" data-min="2">
+    <p>Alice and Bob come from the 1978 RSA paper. Eve = eavesdropper (passive). Mallory = malicious, active attacker who can modify and inject.</p>
+    <p>Click each attack. Key point for engineers: encryption alone only fixes the first one. We'll see in Part 2 how people get burned by assuming encryption also gives integrity.</p>
+  </aside>
+</section>
+
+<section class="slide" id="vocab" data-title="Five words you need" data-part="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Vocabulary</p>
+      <h2>Five words, one pipeline.</h2>
+      <p class="lede">Type a message. Then give Bob a different key from Alice and watch decryption fall apart.</p>
+    </header>
+    <div class="pipeline">
+      <div class="stage"><span class="eyebrow">Plaintext · m</span><input type="text" id="vPlain" value="Deploy on Friday" aria-label="Plaintext"></div>
+      <div class="stage op"><span class="eyebrow">Encrypt · E(k, m)</span><label class="field"><span>Alice's key k = <b class="hl mono" id="vKaLab">3</b></span><input type="range" id="vKa" min="1" max="25" value="3"></label></div>
+      <div class="stage"><span class="eyebrow">Ciphertext · c</span><div class="out" id="vCipher"></div></div>
+      <div class="stage op"><span class="eyebrow">Decrypt · D(k, c)</span><label class="field"><span>Bob's key k = <b class="hl mono" id="vKbLab">3</b></span><input type="range" id="vKb" min="1" max="25" value="3"></label></div>
+      <div class="stage"><span class="eyebrow">Bob reads</span><div class="out" id="vBack"></div></div>
+    </div>
+    <div class="term-list">
+      <div><b>Plaintext</b> the readable message.</div>
+      <div><b>Ciphertext</b> what travels on the wire. Eve sees this.</div>
+      <div><b>Cipher</b> the algorithm (here: shift each letter by k).</div>
+      <div><b>Key</b> the small secret that controls the cipher.</div>
+      <div><b>Cryptanalysis</b> breaking it without the key.</div>
+    </div>
+  </div>
+  <aside class="notes" data-min="1">
+    <p>Quick slide. The cipher here is Caesar, which is next. Drag Bob's key away from Alice's to show that the algorithm is useless without the right key.</p>
+    <p>Plant the seed: the key is the only secret. The algorithm can be public. That idea has a name (Kerckhoffs) and we'll come back to it.</p>
+  </aside>
+</section>
+
+<section class="slide" id="caesar" data-title="Caesar cipher" data-part="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">~50 BC · Rome</p>
+      <h2>Caesar: shift every letter.</h2>
+      <p class="lede">Turn the inner disc. Outer ring is the plaintext alphabet, inner ring is what each letter becomes.</p>
+    </header>
+    <div class="cols">
+      <svg class="wheel" id="wheel" viewBox="-190 -190 380 380" role="img" aria-label="Caesar cipher wheel">
+        <circle class="ring" r="178"></circle>
+        <g class="outer" id="wheelOuter"></g>
+        <circle class="disc" r="138"></circle>
+        <g class="inner" id="wheelInner"></g>
+        <circle class="hub" r="96"></circle>
+        <path class="pointer" d="M0,-182 l-7,-8 h14z"></path>
+        <text class="hub-label" x="0" y="-16">shift</text>
+        <text class="hub-num" x="0" y="14" id="wheelShift">3</text>
+      </svg>
+      <div class="stack">
+        <label class="field"><span>Shift (the key)</span><input type="range" id="cShift" min="0" max="25" value="3"></label>
+        <label class="field">Plaintext<input type="text" id="cPlain" value="Veni vidi vici"></label>
+        <label class="field">Ciphertext<div class="out" id="cOut"></div></label>
+        <div class="row">
+          <button class="btn" id="cRot13">Try ROT13</button>
+          <button class="btn" id="cRandom">Random shift</button>
+        </div>
+        <p class="callout small muted" id="cNote">Shift 13 is special: applying it twice gives back the original. That is why ROT13 was used on Usenet to hide spoilers.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes" data-min="2">
+    <p>Suetonius wrote that Caesar used a shift of 3. Drag the slider; the inner disc rotates. Type in the plaintext box and the last letter lights up on the wheel.</p>
+    <p>Ask the room: how many keys are there? Answer: 25 useful ones. Next slide we break it with a for-loop.</p>
+  </aside>
+</section>
+
+<section class="slide" id="bruteforce" data-title="Breaking Caesar" data-part="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Attack #1 · brute force</p>
+      <h2>25 keys? Just try them all.</h2>
+      <p class="lede">Eve intercepted this. She doesn't know the shift, so she tries every one and scores each result against English letter frequencies.</p>
+    </header>
+    <div class="panel stack">
+      <label class="field">Intercepted ciphertext (paste your own if you like)<input type="text" id="bfIn" value=""></label>
+      <div class="row"><button class="btn primary" id="bfRun">Run brute force</button><span class="muted small" id="bfStat"></span></div>
+      <div class="bf-list" id="bfList"></div>
+    </div>
+    <p class="callout"><b>Lesson 1:</b> if the key space is small enough to loop over, the cipher is broken. Modern keys are 128 or 256 bits: 2<sup>128</sup> ≈ 3.4 × 10<sup>38</sup> possibilities.</p>
+  </div>
+  <aside class="notes" data-min="1.5">
+    <p>Hit "Run brute force". The green row is the one that scores best on a chi-squared test against English letter frequencies, so the computer even picks the answer for us.</p>
+    <p>This is the first principle: key space must be too big to enumerate. Next: what if we make the key space enormous?</p>
+  </aside>
+</section>
+
+<section class="slide" id="substitution" data-title="Substitution cipher" data-part="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Antiquity → 1500s · monoalphabetic substitution</p>
+      <h2>Shuffle the whole alphabet instead.</h2>
+      <p class="lede">The key is now any permutation of 26 letters. Brute force is hopeless.</p>
+    </header>
+    <div class="panel stack">
+      <div class="scroll-x"><div class="keymap" id="subKey"></div></div>
+      <div class="cols">
+        <label class="field">Plaintext<input type="text" id="subIn" value="Meet me behind the data centre"></label>
+        <label class="field">Ciphertext<div class="out" id="subOut"></div></label>
+      </div>
+      <div class="row"><button class="btn" id="subShuffle">Shuffle key</button></div>
+    </div>
+    <div class="cols-3">
+      <div class="panel"><p class="muted small">Possible keys (26!)</p><p class="big-num tnum">4 × 10<sup>26</sup></p><p class="muted small">403,291,461,126,605,635,584,000,000 ≈ 2<sup>88</sup></p></div>
+      <div class="panel"><p class="muted small">At 1 billion keys per second</p><p class="big-num tnum">12.8 billion years</p><p class="muted small">The universe is about 13.8 billion years old.</p></div>
+      <div class="panel"><p class="muted small">Yet it was broken routinely for</p><p class="big-num">~700 years</p><p class="muted small">by people with pen and paper. How?</p></div>
+    </div>
+  </div>
+  <aside class="notes" data-min="1">
+    <p>Shuffle the key a couple of times. Then land the twist: a huge key space is necessary but not sufficient. The cipher leaks structure. Bridge to frequency analysis.</p>
+  </aside>
+</section>
+
+<section class="slide" id="frequency" data-title="Frequency analysis" data-part="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">~850 AD · Baghdad · Al-Kindi</p>
+      <h2>Count the letters. The secret leaks.</h2>
+      <p class="lede">A paragraph encrypted with a random substitution key. The most common symbol is probably E, the next probably T. Fill in guesses below.</p>
+    </header>
+    <div class="cols">
+      <div class="panel stack">
+        <div><p class="small muted">English letter frequency (most common first)</p><div class="bars eng" id="fqEng"></div></div>
+        <div><p class="small muted">Ciphertext symbol frequency (most common first)</p><div class="bars cip" id="fqCip"></div></div>
+      </div>
+      <div class="panel stack">
+        <div class="decode" id="fqText" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="panel stack">
+      <div class="row" style="justify-content:space-between">
+        <div class="row">
+          <button class="btn primary" id="fqRank">Guess by frequency rank</button>
+          <button class="btn" id="fqHint">Hint: one letter</button>
+          <button class="btn" id="fqClear">Clear</button>
+          <button class="btn" id="fqReveal">Reveal</button>
+          <button class="btn" id="fqNew">New puzzle</button>
+        </div>
+        <span class="small muted tnum" id="fqScore"></span>
+      </div>
+            <div class="sheet" id="fqSheet"></div>
+    </div>
+  </div>
+  <aside class="notes" data-min="3">
+    <p>Al-Kindi's "Manuscript on Deciphering Cryptographic Messages" is the oldest known description of frequency analysis.</p>
+    <p>Click "Guess by frequency rank". On a short text only a handful of letters land right (E and T usually do), which is a nice honest moment: statistics get you started, then word patterns finish the job. Crowd-source: "that three-letter word everywhere is probably THE". Use "Hint" to fill in the most common unsolved letter. Reveal if time is short.</p>
+    <p>Lesson: the ciphertext must not preserve patterns of the plaintext. This is the same lesson as the ECB penguin in Part 2.</p>
+  </aside>
+</section>
+
+<section class="slide" id="vigenere" data-title="Vigenère cipher" data-part="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">1553 Bellaso · popularised by Vigenère · broken 1854–1863</p>
+      <h2>Vigenère: a different shift for every letter.</h2>
+      <p class="lede">A keyword picks the shift for each position. The same plaintext letter now becomes different ciphertext letters, which flattens the frequency chart.</p>
+    </header>
+    <div class="cols">
+      <div class="panel stack">
+        <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr))">
+          <label class="field">Keyword<input type="text" id="vgKey" value="LEMON" maxlength="20"></label>
+          <label class="field">Plaintext<input type="text" id="vgIn" value="ATTACK AT DAWN" maxlength="40"></label>
+        </div>
+        <div class="scroll-x"><div class="vtable" id="vgTable"></div></div>
+        <label class="field">Ciphertext<div class="out" id="vgOut"></div></label>
+      </div>
+      <div class="panel stack">
+        <p class="small muted">Letter frequencies of the long paragraph from the previous slide:</p>
+        <div><p class="small">Caesar (one shift)</p><div class="bars cip" id="vgBarsC" style="height:70px"></div></div>
+        <div><p class="small">Vigenère with your keyword</p><div class="bars cip" id="vgBarsV" style="height:70px"></div></div>
+        <div class="ioc small"><span class="muted">Index of coincidence:</span><b class="mono tnum" id="vgIoc">—</b><span class="muted">English ≈ 0.066 · random ≈ 0.038</span></div>
+      </div>
+    </div>
+    <p class="callout small">Called <i>le chiffre indéchiffrable</i> for 300 years. Babbage and Kasiski broke it by spotting that the keyword <b>repeats</b>: find the key length, and the message splits into several plain Caesar ciphers.</p>
+  </div>
+  <aside class="notes" data-min="2">
+    <p>Change the keyword: try "A" (that's just plaintext), then "KEY", then a long keyword. Watch the bottom chart flatten and the index of coincidence drop towards random.</p>
+    <p>The weakness: a short repeating key. A key as long as the message, used once, would be unbreakable. That's the one-time pad, at the end of Part 1.</p>
+  </aside>
+</section>
+
+<section class="slide" id="enigma" data-title="Enigma machine" data-part="1" data-keys="letters">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">1930s–1945 · Germany · Enigma I</p>
+      <h2>Enigma: a cipher that rewires itself on every key press.</h2>
+      <p class="lede">Three rotors step like an odometer on every key press, so the wiring changes for every letter. Type on your keyboard or click the keys.</p>
+    </header>
+    <div class="cols">
+      <div class="enigma">
+        <div class="rotors" id="enRotors"></div>
+        <div class="lampboard" id="enLamps" aria-hidden="true"></div>
+        <div class="keyboard" id="enKeys"></div>
+      </div>
+      <div class="stack">
+        <div class="panel stack">
+          <label class="field">You typed<div class="tape out" id="enIn"></div></label>
+          <label class="field">Enigma output<div class="tape out hl-text" id="enOut"></div></label>
+          <div class="path" id="enPath">Signal path appears here.</div>
+          <div class="row"><button class="btn" id="enReset">Reset rotors to AAA</button><button class="btn" id="enA5">Press A five times</button></div>
+        </div>
+        <ul class="small muted stack" style="gap:.35em">
+          <li>The same letter encrypts differently every time: no single frequency chart.</li>
+          <li>Decrypting is the same as encrypting: set the same start position and type the ciphertext.</li>
+          <li>The rotor sequence only repeats after 16,900 letters, and there were about 1.59 × 10<sup>20</sup> daily settings with the plugboard.</li>
+          <li>Flaw built into the reflector: <b class="hl">a letter never encrypts to itself.</b></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <aside class="notes" data-min="2.5">
+    <p>Real wirings: rotors I, II, III and reflector B, no plugboard. Click "Press A five times": you get BDZGO, the textbook test vector.</p>
+    <p>Show symmetry: reset, type the output, get the input back. Then point at the flaw in the last bullet. The next slide shows how Bletchley Park used it.</p>
+  </aside>
+</section>
+
+<section class="slide" id="crib" data-title="Cracking Enigma with a crib" data-part="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">1940 · Bletchley Park · Turing &amp; Welchman</p>
+      <h2>A guessed word plus one flaw.</h2>
+      <p class="lede">Weather stations sent a report every morning containing <span class="mono hl">WETTERVORHERSAGE</span> (“weather forecast”). Slide that crib along the intercept. Wherever a letter lines up with itself, that position is impossible, because Enigma never maps a letter to itself.</p>
+    </header>
+    <div class="panel stack">
+      <div class="crib-wrap"><div class="crib-grid" id="cribGrid"></div></div>
+      <label class="field"><span>Crib position: <b class="hl mono" id="cribPosLab">0</b></span><input type="range" id="cribPos" min="0" max="10" value="0"></label>
+      <p class="verdict" id="cribVerdict"></p>
+      <div class="stack" style="gap:.4em"><p class="small muted">Every position at a glance (green = still possible). Click one to jump.</p><div class="strip" id="cribStrip"></div></div>
+    </div>
+    <p class="callout small">Each surviving position was then tested on Turing's <b>bombe</b>, an electromechanical machine that ruled out rotor settings by the thousand. Predictable plaintext is still a classic attack today.</p>
+  </div>
+  <aside class="notes" data-min="2">
+    <p>Drag the slider: red cells are clashes. Most positions die instantly. The strip shows all of them. One of the green ones is the real position.</p>
+    <p>Engineering lesson: a tiny structural bias plus predictable plaintext ("known plaintext attack") was enough. Modern ciphers are designed so the output is indistinguishable from random even when the attacker chooses the plaintext.</p>
+  </aside>
+</section>
+
+<section class="slide" id="kerckhoffs" data-title="Kerckhoffs's principle" data-part="1" data-optional="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">1883 · Auguste Kerckhoffs</p>
+      <h2>Only the key is secret.</h2>
+      <p class="lede">A cryptosystem should stay secure even if the enemy knows everything about it except the key. The Germans assumed Enigma's design was secret. Polish mathematicians had reconstructed the wiring by 1932.</p>
+    </header>
+    <div class="panel stack">
+      <h3>Which one would you put in production?</h3>
+      <div class="cols">
+        <button class="btn" style="justify-content:flex-start;text-align:left;padding:1em" data-poll="a"><span><b>A.</b> Our in-house “SuperCrypt”. Algorithm is secret, nobody outside the team has seen it.</span></button>
+        <button class="btn" style="justify-content:flex-start;text-align:left;padding:1em" data-poll="b"><span><b>B.</b> AES. Published in 1998, standardised in 2001, attacked by the whole world for 25 years.</span></button>
+      </div>
+      <p class="verdict" id="pollOut" hidden></p>
+    </div>
+    <p class="callout small">Shannon put it shorter in 1949: <i>“the enemy knows the system.”</i> Secret algorithms get reverse-engineered; keys can be rotated.</p>
+  </div>
+  <aside class="notes" data-min="1">
+    <p>Optional if short on time. Ask for a show of hands before clicking. The point: obscurity is not a security layer you can rely on; review is.</p>
+  </aside>
+</section>
+
+<section class="slide" id="otp" data-title="XOR and the one-time pad" data-part="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">1917 Vernam · 1949 Shannon proves it perfect</p>
+      <h2>The one-time pad: provably unbreakable.</h2>
+      <p class="lede">Make the key truly random, as long as the message, and never reuse it. Combine with XOR, the engineer's favourite operator.</p>
+    </header>
+    <div class="cols">
+      <div class="panel stack">
+        <h3>XOR, one byte <span class="muted small" style="font-weight:400">(click key bits to flip them)</span></h3>
+        <div class="scroll-x"><div class="bits" id="xorBits"></div></div>
+        <div class="row"><label class="field" style="flex-direction:row;align-items:center;gap:.5em">Letter <input type="text" id="xorChar" value="H" maxlength="1" style="width:3em;text-align:center"></label><button class="btn" id="xorRand">Random key byte</button></div>
+        <p class="small muted">0⊕0=0 · 0⊕1=1 · 1⊕0=1 · 1⊕1=0. XOR with the same key twice gives you back the original.</p>
+      </div>
+      <div class="panel stack">
+        <h3>Why Eve can't win</h3>
+        <p class="small muted">Eve has this ciphertext. For any guess, there is a key that makes it decrypt to that guess. Every message of the same length is equally likely.</p>
+        <dl class="kv"><dt>Ciphertext</dt><dd class="hex" id="otpC"></dd></dl>
+        <label class="field">Eve guesses the message was…<input type="text" id="otpGuess" value="RETREAT AT TEN" maxlength="14"></label>
+        <div class="row"><button class="btn" data-guess="RETREAT AT TEN">RETREAT AT TEN</button><button class="btn" data-guess="ORDER MORE TEA">ORDER MORE TEA</button><button class="btn" data-guess="ATTACK AT DAWN">ATTACK AT DAWN</button></div>
+        <dl class="kv"><dt>Key that fits</dt><dd class="hex" id="otpK"></dd></dl>
+        <p class="small" id="otpNote"></p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes" data-min="2">
+    <p>Left: flip key bits, show that XOR is its own inverse. Right: type any 14-character guess, or click the buttons. The "key that fits" always exists. The ciphertext gives Eve zero information.</p>
+    <p>So why don't we use it? The key must be as long as all the data you ever send, and you need to get it to Bob securely. If you can do that, just send the message that way. And the "never reuse" rule is brutal; next slide.</p>
+  </aside>
+</section>
+
+<section class="slide" id="twotime" data-title="The two-time pad" data-part="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">1943–1980 · Venona · and every nonce-reuse bug since</p>
+      <h2>Reuse the pad once, and it's over.</h2>
+      <p class="lede">Two images encrypted with the same random key. Each ciphertext alone is pure noise. XOR them together and the key cancels out: C₁ ⊕ C₂ = P₁ ⊕ P₂.</p>
+    </header>
+    <div class="canv-row">
+      <figure><canvas id="tt1" width="160" height="80"></canvas><figcaption>Plaintext 1 (secret)</figcaption></figure>
+      <figure><canvas id="tt2" width="160" height="80"></canvas><figcaption>Plaintext 2 (secret)</figcaption></figure>
+      <figure><canvas id="ttK" width="160" height="80"></canvas><figcaption>Key, used twice</figcaption></figure>
+    </div>
+    <div class="canv-row">
+      <figure><canvas id="ttC1" width="160" height="80"></canvas><figcaption>C₁ = P₁ ⊕ K (Eve sees)</figcaption></figure>
+      <figure><canvas id="ttC2" width="160" height="80"></canvas><figcaption>C₂ = P₂ ⊕ K (Eve sees)</figcaption></figure>
+      <figure><canvas id="ttX" width="160" height="80"></canvas><figcaption id="ttXcap">C₁ ⊕ C₂ = ?</figcaption></figure>
+    </div>
+    <div class="row"><button class="btn primary" id="ttGo">XOR the two ciphertexts</button><button class="btn" id="ttHide">Hide plaintexts</button><span class="small muted">Same failure, modern names: WEP Wi-Fi (2001), AES-GCM or ChaCha20 with a repeated nonce.</span></div>
+  </div>
+  <aside class="notes" data-min="1.5">
+    <p>Click "Hide plaintexts" first so the room only sees noise, then "XOR". Both messages pop out on top of each other with no key involved.</p>
+    <p>Venona: Soviet pads were reused during WWII and US codebreakers read thousands of messages. In Part 2, "never reuse a nonce" is exactly this rule.</p>
+  </aside>
+</section>
+
+<section class="slide" id="recap1" data-title="Part 1 recap" data-part="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">End of Part 1</p>
+      <h2>Two thousand years, five lessons.</h2>
+    </header>
+    <div class="cols-3">
+      <div class="panel"><h3>Big key space</h3><p class="muted small">Caesar fell to a for-loop. Keys must be too many to try.</p></div>
+      <div class="panel"><h3>Hide all patterns</h3><p class="muted small">Substitution fell to letter counts. Output must look random.</p></div>
+      <div class="panel"><h3>No structural flaws</h3><p class="muted small">Enigma fell to one quirk plus a guessed word.</p></div>
+      <div class="panel"><h3>Only the key is secret</h3><p class="muted small">Assume the attacker has your source code.</p></div>
+      <div class="panel"><h3>Never reuse keystream</h3><p class="muted small">One reuse of a perfect cipher leaks everything.</p></div>
+      <div class="panel inverse"><h3>The open problem</h3><p class="small">Every cipher so far needs Alice and Bob to <b>already share a secret key</b>. How do two strangers on the internet agree on one?</p></div>
+    </div>
+    <div class="row"><a class="btn primary" href="#part2">Continue to Part 2 <span class="gs-icon" data-fb="→" aria-hidden="true">arrow_forward</span></a></div>
+  </div>
+  <aside class="notes" data-min="1">
+    <p>If splitting into two sessions, stop here and use the "open problem" card as the cliffhanger. Ask: how would you agree on a key with someone you've never met, over a channel Eve is reading?</p>
+  </aside>
+</section>
+
+<!-- ============================ PART 2 ============================ -->
+
+<section class="slide deep breaker" id="part2" data-title="Part 2 · Modern cryptography" data-part="2">
+  <div class="slide-inner">
+    <div class="num">02</div>
+    <h1>Modern cryptography.</h1>
+    <p class="lede">Maths instead of secrecy. Since the 1970s, ciphers are public, standardised, and built on problems mathematicians have failed to solve for decades. This is the toolbox inside every HTTPS request you make. Pick a milestone to jump to it.</p>
+    <div class="era-row">
+      <a class="era" href="#hashing" style="text-decoration:none">Hash functions<small>SHA-2 · 2001</small></a>
+      <a class="era" href="#aes" style="text-decoration:none">AES<small>FIPS 197 · 2001</small></a>
+      <a class="era" href="#dh" style="text-decoration:none">Diffie–Hellman<small>1976</small></a>
+      <a class="era" href="#rsa" style="text-decoration:none">RSA<small>1977</small></a>
+      <a class="era" href="#signatures" style="text-decoration:none">Signatures<small>ECDSA · 1992</small></a>
+      <a class="era" href="#tls" style="text-decoration:none">TLS 1.3<small>RFC 8446 · 2018</small></a>
+      <a class="era" href="#pq" style="text-decoration:none">Post-quantum<small>FIPS 203 · 2024</small></a>
+    </div>
+  </div>
+  <aside class="notes" data-min="0.5">
+    <p>If this is a separate session: 60-second recap of Part 1 using the recap slide's "open problem". Then say: modern crypto keeps the lessons and replaces pen-and-paper tricks with hard maths problems.</p>
+  </aside>
+</section>
+
+<section class="slide" id="toolbox" data-title="The modern toolbox" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Map of Part 2</p>
+      <h2>Five primitives cover almost everything.</h2>
+      <p class="lede">Click one to see which security goal it gives you and where you already use it.</p>
+    </header>
+    <div class="cols">
+      <div class="stack" id="tbList">
+        <button class="btn" data-tb="hash" aria-pressed="true" style="justify-content:space-between"><span>Hash function</span><span class="tag">SHA-256</span></button>
+        <button class="btn" data-tb="aead" style="justify-content:space-between"><span>Symmetric encryption (AEAD)</span><span class="tag">AES-GCM</span></button>
+        <button class="btn" data-tb="mac" style="justify-content:space-between"><span>Message authentication code</span><span class="tag">HMAC</span></button>
+        <button class="btn" data-tb="kex" style="justify-content:space-between"><span>Key exchange</span><span class="tag">X25519</span></button>
+        <button class="btn" data-tb="sig" style="justify-content:space-between"><span>Digital signature</span><span class="tag">Ed25519 · ECDSA · RSA</span></button>
+      </div>
+      <div class="panel stack" id="tbCard" aria-live="polite"></div>
+    </div>
+  </div>
+  <aside class="notes" data-min="1.5">
+    <p>Walk through quickly; each gets its own slide. Emphasise the keys column: symmetric = one shared key; asymmetric = key pair.</p>
+  </aside>
+</section>
+
+<section class="slide" id="hashing" data-title="Hash functions" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Fingerprints for data · SHA-256 running live in your browser</p>
+      <h2>Change one character, change half the bits.</h2>
+      <p class="lede">A hash maps any input to a fixed 256-bit fingerprint. It's fast, one-way, and a tiny input change flips about half the output bits. That's the avalanche effect.</p>
+    </header>
+    <div class="cols">
+      <label class="field">Input A<input type="text" id="hA" value="Transfer $100 to Bob"></label>
+      <label class="field">Input B<input type="text" id="hB" value="Transfer $101 to Bob"></label>
+    </div>
+    <div class="panel stack">
+      <dl class="kv"><dt>SHA-256(A)</dt><dd class="hex hexdiff" id="hHa"></dd><dt>SHA-256(B)</dt><dd class="hex hexdiff" id="hHb"></dd></dl>
+      <div class="bitgrid" id="hGrid" aria-hidden="true"></div>
+      <p><b class="big-num tnum" id="hCount">—</b> <span class="muted">of 256 bits differ</span></p>
+    </div>
+    <div class="cols-3">
+      <div><h3>Deterministic</h3><p class="small muted">Same input, same hash, on every machine. Git commit IDs rely on this.</p></div>
+      <div><h3>One-way</h3><p class="small muted">Given a hash, you can't compute the input. You can only guess and check.</p></div>
+      <div><h3>Collision-resistant</h3><p class="small muted">Nobody can find two inputs with the same hash. MD5 and SHA-1 lost this (SHA-1 publicly in 2017).</p></div>
+    </div>
+  </div>
+  <aside class="notes" data-min="2">
+    <p>Change the single digit and watch ~128 red cells. Make A and B identical: zero red. This is Shannon's "diffusion" in action.</p>
+    <p>"One-way" sets up the next slide: guess-and-check is exactly how attackers crack leaked password hashes.</p>
+  </aside>
+</section>
+
+<section class="slide" id="passwords" data-title="Storing passwords" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Your database just leaked</p>
+      <h2>Fast hashes are bad for passwords.</h2>
+      <p class="lede">A user's 4-digit PIN was stored as SHA-256(PIN). Hashes are one-way, so it's safe… right? Crack it live.</p>
+    </header>
+    <div class="cols-3">
+      <div class="panel stack">
+        <h3>1 · Guess and check</h3>
+        <dl class="kv"><dt>user</dt><dd>alice</dd><dt>sha256</dt><dd class="hex" id="pwHash"></dd></dl>
+        <div class="row"><button class="btn primary" id="pwCrack">Crack it</button><button class="btn" id="pwNew">New leak</button></div>
+        <p class="verdict" id="pwOut">Waiting…</p>
+        <p class="small muted">One high-end GPU computes roughly 20 billion SHA-256 hashes per second. Every 8-character lowercase-plus-digit password (2.8 × 10<sup>12</sup>) falls in 2–3 minutes.</p>
+      </div>
+      <div class="panel stack">
+        <h3>2 · Add a salt</h3>
+        <p class="small muted">Two users picked the same password. Without a salt their hashes match, and one precomputed table cracks everyone.</p>
+        <dl class="kv" id="saltRows"></dl>
+        <div class="row"><button class="btn" id="saltToggle" aria-pressed="false">Add random salt per user</button></div>
+      </div>
+      <div class="panel stack">
+        <h3>3 · Make each guess slow</h3>
+        <p class="small muted">Password hashes are slow on purpose. Time one PBKDF2 guess (600,000 iterations, the current OWASP minimum) on this laptop.</p>
+        <div class="row"><button class="btn" id="kdfRun">Measure PBKDF2</button></div>
+        <p class="verdict" id="kdfOut">Not measured yet.</p>
+      </div>
+    </div>
+    <p class="callout small"><b>Use:</b> Argon2id (first choice), scrypt or bcrypt, or PBKDF2 where FIPS is required. Always with a unique salt per user. Your framework almost certainly has one built in.</p>
+  </div>
+  <aside class="notes" data-min="2.5">
+    <p>Crack button runs all 10,000 SHA-256 guesses in the browser; usually well under a second. Then toggle salt: identical hashes become different.</p>
+    <p>Then measure PBKDF2: one guess takes tens to hundreds of milliseconds, so 10,000 guesses take minutes instead of milliseconds. A 4-digit PIN is still too small a key space, so rate-limit it as well. Argon2id additionally needs lots of memory, which hurts GPU attackers.</p>
+  </aside>
+</section>
+
+<section class="slide" id="aes" data-title="AES: symmetric encryption" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">1998 Rijndael · 2001 FIPS 197 · in hardware on every modern CPU</p>
+      <h2>AES: the workhorse.</h2>
+      <p class="lede">One shared 256-bit key. AES scrambles 16-byte blocks through 14 rounds of substitution and mixing (Shannon's “confusion and diffusion”). Real AES-GCM, running in your browser:</p>
+    </header>
+    <div class="cols">
+      <div class="panel stack">
+        <dl class="kv"><dt>key (256-bit)</dt><dd class="hex" id="aesKey">generating…</dd></dl>
+        <label class="field">Plaintext<input type="text" id="aesIn" value="The launch code is 0000"></label>
+        <div class="row"><button class="btn primary" id="aesEnc">Encrypt</button><button class="btn" id="aesEnc2">Encrypt the same text again</button></div>
+        <dl class="kv"><dt>nonce (IV)</dt><dd class="hex" id="aesIv">—</dd><dt>ciphertext</dt><dd class="bytes" id="aesCt">—</dd></dl>
+        <p class="small muted">The highlighted bytes at the end are the 16-byte authentication tag.</p>
+      </div>
+      <div class="panel stack">
+        <h3>Bob decrypts</h3>
+        <div class="row"><button class="btn" id="aesDec">Decrypt with the right key</button><button class="btn" id="aesDecWrong">Decrypt with a different key</button></div>
+        <p class="verdict" id="aesOut">Encrypt something first.</p>
+        <ul class="small muted stack" style="gap:.4em">
+          <li>Same message, new nonce, completely different ciphertext. Eve can't even tell two messages are equal.</li>
+          <li>Key sizes: 128, 192 or 256 bits. AES-128 is still unbroken; 256 adds margin.</li>
+          <li>Speed: several GB/s per core thanks to AES-NI / ARMv8 crypto instructions.</li>
+          <li>Alternative: ChaCha20-Poly1305, fast on devices without AES hardware.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <aside class="notes" data-min="2">
+    <p>Encrypt, then "encrypt again": different nonce, different ciphertext. That's semantic security: equal plaintexts don't produce equal ciphertexts.</p>
+    <p>Decrypt with a different key: AES-GCM refuses rather than returning garbage. That refusal is the tag doing its job. But how you use a block cipher matters a lot; next slide.</p>
+  </aside>
+</section>
+
+<section class="slide" id="ecb" data-title="Modes: the ECB problem" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Block cipher modes · real AES on every block</p>
+      <h2>Same block in, same block out.</h2>
+      <p class="lede">AES only encrypts 16 bytes at a time. The naïve mode, ECB, encrypts each block independently, so identical plaintext blocks give identical ciphertext blocks. Frequency analysis, again.</p>
+    </header>
+    <div class="cols">
+      <div class="ecb-view stack">
+        <canvas id="ecbCanvas" width="192" height="128" aria-label="Image encrypted with the selected mode"></canvas>
+        <div class="row" id="ecbBtns">
+          <button class="btn" data-mode="plain" aria-pressed="true">Original</button>
+          <button class="btn" data-mode="ecb">AES-ECB</button>
+          <button class="btn" data-mode="ctr">AES-CTR</button>
+        </div>
+      </div>
+      <div class="stack">
+        <p class="verdict" id="ecbCap">The original image. Each 4×4 pixel tile is one 16-byte block.</p>
+        <p class="small muted">ECB is still the default in some libraries (for example Java's <code>Cipher.getInstance("AES")</code>). Modes like CTR and GCM mix a nonce and a counter into every block, so the output looks random even when the input repeats.</p>
+        <p class="callout small">Same lesson as Al-Kindi: <b>if the ciphertext preserves patterns of the plaintext, it leaks.</b></p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes" data-min="1.5">
+    <p>Original → ECB: the padlock shape is still visible because flat-colour tiles all encrypt to the same block. CTR: noise. Both are real AES with the same key.</p>
+    <p>This is the classic "ECB penguin" demo with our own image.</p>
+  </aside>
+</section>
+
+<section class="slide" id="bitflip" data-title="Encryption is not integrity" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Bit-flipping attack · Mallory never learns the key</p>
+      <h2>Encryption alone doesn't stop tampering.</h2>
+      <p class="lede">CTR mode encrypts by XOR-ing a keystream, just like the one-time pad. If Mallory can guess the plaintext format, she can XOR in her own changes. Without the key.</p>
+    </header>
+    <div class="cols">
+      <div class="panel stack">
+        <dl class="kv"><dt>Alice sends</dt><dd id="bfP">PAY $0010 TO BOB</dd><dt>ciphertext</dt><dd class="hex" id="bfC">…</dd></dl>
+        <label class="field">Mallory wants Bob to read (16 characters)<input type="text" id="bfT" value="PAY $9999 TO EVE" maxlength="16"></label>
+        <dl class="kv"><dt>P ⊕ P′</dt><dd class="hex" id="bfD">—</dd><dt>C′ = C ⊕ P ⊕ P′</dt><dd class="hex" id="bfC2">—</dd></dl>
+        <div class="row"><button class="btn primary" id="bfGo">Flip the bits and forward to Bob</button></div>
+      </div>
+      <div class="stack">
+        <div class="panel stack"><h3>Bob, using AES-CTR <span class="tag warn">encryption only</span></h3><p class="verdict" id="bfCtr">Waiting for Mallory…</p></div>
+        <div class="panel stack"><h3>Bob, using AES-GCM <span class="tag good">authenticated</span></h3><p class="verdict" id="bfGcm">Waiting for Mallory…</p></div>
+        <p class="callout small"><b>Rule:</b> always use authenticated encryption (AEAD): AES-GCM or ChaCha20-Poly1305. Encrypt-only modes (CTR, CBC without a MAC) are an accident waiting to happen.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes" data-min="2">
+    <p>Click the button. CTR Bob happily reads the forged message. GCM Bob rejects it because the authentication tag no longer matches.</p>
+    <p>Real-world: padding-oracle attacks on CBC (ASP.NET 2010, Lucky 13) and many custom "encrypted cookie" schemes were broken like this.</p>
+  </aside>
+</section>
+
+<section class="slide" id="keydist" data-title="The key distribution problem" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Back to Part 1's open problem</p>
+      <h2>Shared keys don't scale.</h2>
+      <p class="lede">With symmetric crypto, every pair of people needs their own secret key, delivered securely in advance.</p>
+    </header>
+    <div class="cols kd">
+      <svg id="kdSvg" viewBox="-210 -210 420 420" role="img" aria-label="Graph of people and the keys between them"></svg>
+      <div class="stack">
+        <label class="field"><span>People: <b class="hl mono" id="kdNLab">8</b></span><input type="range" id="kdN" min="2" max="40" value="8"></label>
+        <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))">
+          <div class="panel"><p class="small muted">Shared secret keys</p><p class="big-num tnum" id="kdSym">28</p><p class="small muted">n(n−1)/2</p></div>
+          <div class="panel"><p class="small muted">With public-key crypto</p><p class="big-num tnum" id="kdPub">8</p><p class="small muted">one key pair each</p></div>
+        </div>
+        <p class="small muted">A company of 1,000 people would need 499,500 secret keys. The internet has billions of devices that have never met.</p>
+        <p class="callout small">1976: Diffie and Hellman publish “New Directions in Cryptography”. Two strangers can agree on a secret over a public channel.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes" data-min="1">
+    <p>Drag the slider to 40 and let the graph turn into a hairball. This is why public-key cryptography was a revolution. (GCHQ had found it secretly a few years earlier.)</p>
+  </aside>
+</section>
+
+<section class="slide" id="dh" data-title="Diffie–Hellman key exchange" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">1976 · Diffie &amp; Hellman</p>
+      <h2>Agree on a secret while Eve watches.</h2>
+      <p class="lede">The paint analogy: mixing is easy, un-mixing is hard. Pick secret colours for Alice and Bob.</p>
+    </header>
+    <div class="cols">
+      <div class="panel stack">
+        <div class="paint-grid">
+          <div class="colh c-alice">Alice</div><div class="colh c-eve">Public (Eve sees)</div><div class="colh c-bob">Bob</div>
+          <div><div class="swatches" id="dhSwA"></div><small>secret colour</small></div>
+          <div><div class="blob" id="dhCommon"></div><small>agreed common paint</small></div>
+          <div><div class="swatches" id="dhSwB"></div><small>secret colour</small></div>
+          <div><div class="blob" id="dhMixA"></div><small>common + Alice's secret</small></div>
+          <div class="row" style="justify-content:center;gap:6px"><div class="blob" id="dhWireA" style="width:2em"></div><div class="blob" id="dhWireB" style="width:2em"></div><small style="width:100%">both mixes travel publicly</small></div>
+          <div><div class="blob" id="dhMixB"></div><small>common + Bob's secret</small></div>
+          <div><div class="blob" id="dhFinA"></div><small>Bob's mix + Alice's secret</small></div>
+          <div><p class="verdict good small" id="dhMatch">Same colour</p></div>
+          <div><div class="blob" id="dhFinB"></div><small>Alice's mix + Bob's secret</small></div>
+        </div>
+      </div>
+      <div class="panel stack">
+        <h3>The real thing: modular arithmetic</h3>
+        <div class="row">
+          <label class="field" style="flex:1 1 9em">Public prime p, base g<select id="dhP"><option value="23,5">p = 23, g = 5</option><option value="1019,2">p = 1019, g = 2</option><option value="2147483647,7">p = 2³¹−1, g = 7</option></select></label>
+          <label class="field" style="flex:1 1 6em">Alice's secret a<input type="number" id="dhA" value="6" min="1"></label>
+          <label class="field" style="flex:1 1 6em">Bob's secret b<input type="number" id="dhB" value="15" min="1"></label>
+        </div>
+        <div class="eq" id="dhEq"></div>
+        <div class="row"><button class="btn" id="dhEve">Eve tries to find a by brute force</button></div>
+        <p class="verdict" id="dhEveOut">Eve knows p, g, A and B. She needs a or b: the discrete logarithm problem.</p>
+        <p class="small muted">Real deployments use 2048-bit+ primes, or elliptic curves (X25519) with 256-bit keys. Same idea, much faster.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes" data-min="3">
+    <p>Paint: change secret colours; the two final blobs always match. Eve sees the common paint and both mixes but can't separate them. (Caveat: the analogy is not a proof; actual RGB averages could be solved.)</p>
+    <p>Maths: A = g^a mod p goes on the wire. Both compute g^(ab) mod p. Click "Eve tries": with p = 23 she's instant; with 2³¹−1 she runs out of time in the browser; real primes are hundreds of digits.</p>
+    <p>Gotcha: DH alone doesn't tell you who you're talking to. Mallory can sit in the middle and do two DH exchanges. That's why we need signatures.</p>
+  </aside>
+</section>
+
+<section class="slide" id="rsa" data-title="RSA" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">1977 · Rivest, Shamir &amp; Adleman</p>
+      <h2>RSA: multiplying is easy, factoring is hard.</h2>
+      <p class="lede">Pick two primes. Their product is public; the primes are the secret. Anyone can encrypt with the public key, only the owner can decrypt.</p>
+    </header>
+    <div class="cols">
+      <div class="panel stack">
+        <div class="row">
+          <label class="field" style="flex:1 1 6em">Prime p<select id="rsaP"></select></label>
+          <label class="field" style="flex:1 1 6em">Prime q<select id="rsaQ"></select></label>
+          <label class="field" style="flex:2 1 10em">Message<input type="text" id="rsaMsg" value="HELLO" maxlength="12"></label>
+        </div>
+        <dl class="rsa-steps" id="rsaSteps"></dl>
+        <div class="char-cells" id="rsaCells"></div>
+        <p class="small muted" id="rsaNote"></p>
+      </div>
+      <div class="panel stack">
+        <h3>Eve's job: factor n</h3>
+        <div class="row"><button class="btn" id="rsaFactor">Factor n</button></div>
+        <p class="verdict" id="rsaFactorOut">With p and q, Eve can compute d and read everything.</p>
+        <div class="row"><button class="btn primary" id="rsaReal">Generate a real RSA-2048 key</button></div>
+        <div class="bignum" id="rsaBig">A real modulus n is a 617-digit number. Click to generate one in your browser.</div>
+        <p class="small muted">The largest RSA challenge number ever factored, RSA-250 (829 bits), took about 2,700 CPU core-years in 2020. RSA-2048 is far beyond that.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes" data-min="2.5">
+    <p>Default p = 61, q = 53 (the Wikipedia example): n = 3233, e = 17, d = 2753. Encryption c = m^e mod n, decryption m = c^d mod n.</p>
+    <p>Point at the repeated "L" cells: textbook RSA is deterministic, so equal letters give equal ciphertexts. Real RSA adds random padding (OAEP), the same lesson as ECB.</p>
+    <p>Generate the real key to show the scale. In practice RSA is used to sign or to wrap a key, never to encrypt bulk data; TLS 1.3 doesn't use RSA key transport at all anymore.</p>
+  </aside>
+</section>
+
+<section class="slide" id="signatures" data-title="Digital signatures" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Authenticity · ECDSA P-256 running live</p>
+      <h2>Sign with the private key, verify with the public key.</h2>
+      <p class="lede">Encryption run backwards: only Alice can produce the signature, anyone can check it. Edit the message after signing.</p>
+    </header>
+    <div class="cols">
+      <div class="panel stack">
+        <dl class="kv"><dt>Alice's public key</dt><dd class="hex" id="sgPub">generating…</dd></dl>
+        <label class="field">Message<textarea id="sgMsg" rows="3">Deploy build 1842 to production</textarea></label>
+        <div class="row"><button class="btn primary" id="sgSign">Alice signs</button><button class="btn" id="sgMal">Mallory signs with her own key</button></div>
+        <dl class="kv"><dt>signature</dt><dd class="hex" id="sgSig">—</dd></dl>
+      </div>
+      <div class="stack">
+        <div class="panel stack"><h3>Bob verifies with Alice's public key</h3><p class="verdict" id="sgOut">Nothing signed yet.</p></div>
+        <div class="panel stack">
+          <h3>You use these every day</h3>
+          <ul class="small muted stack" style="gap:.35em">
+            <li>JWTs signed with RS256 / ES256 / EdDSA</li>
+            <li>Signed git commits and tags, package and container signing</li>
+            <li>TLS certificates: a CA signs “this public key belongs to example.com”</li>
+            <li>Software updates on your phone and laptop</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes" data-min="2">
+    <p>Sign, then add a single character to the message: verification fails immediately (it re-verifies as you type). Then "Mallory signs": valid signature, wrong key, rejected.</p>
+    <p>Bridge: signatures fix the man-in-the-middle problem in DH. The server signs its DH share with a key a CA vouched for. Let's put it all together.</p>
+  </aside>
+</section>
+
+<section class="slide" id="tls" data-title="TLS 1.3: all together" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">RFC 8446 · 2018 · behind every https://</p>
+      <h2>One handshake, every primitive.</h2>
+      <p class="lede">What your browser does, in one round trip, before the first byte of HTML arrives.</p>
+    </header>
+    <div class="tls-grid">
+      <div class="stack">
+        <div class="prims" id="tlsPrims">
+          <span class="prim" data-p="kex">Key exchange · X25519</span>
+          <span class="prim" data-p="kdf">Key derivation · HKDF-SHA256</span>
+          <span class="prim" data-p="hash">Hash · SHA-256</span>
+          <span class="prim" data-p="sig">Signature · ECDSA / RSA-PSS</span>
+          <span class="prim" data-p="mac">MAC · HMAC</span>
+          <span class="prim" data-p="aead">AEAD · AES-128-GCM</span>
+        </div>
+        <div class="panel stack" id="tlsDetail" aria-live="polite"><h3 id="tlsTitle"></h3><p class="small" id="tlsText"></p></div>
+        <div class="row"><button class="btn" id="tlsPrev"><span class="gs-icon" data-fb="←" aria-hidden="true">arrow_back</span> Back</button><button class="btn primary" id="tlsNext">Next step <span class="gs-icon" data-fb="→" aria-hidden="true">arrow_forward</span></button><button class="btn" id="tlsReset">Reset</button><span class="small muted" id="tlsCount"></span></div>
+      </div>
+      <div class="lanes">
+        <div class="lane-head"><span class="c-alice">Browser</span><span class="c-bob">Server</span></div>
+        <div id="tlsSteps" class="lanes"></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes" data-min="3">
+    <p>Step through. At each step the primitive chips light up, so you can see every earlier slide reappear.</p>
+    <p>Forward secrecy: key shares are ephemeral and thrown away. If the server's certificate key leaks next year, today's recorded traffic stays safe. That's why TLS 1.3 removed RSA key transport.</p>
+  </aside>
+</section>
+
+<section class="slide" id="pq" data-title="Post-quantum" data-part="2" data-optional="1">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Shor 1994 · Grover 1996 · NIST standards August 2024</p>
+      <h2>What a large quantum computer would break.</h2>
+      <p class="lede">None exists yet that can do this. But traffic recorded today can be decrypted later (“harvest now, decrypt later”), so the migration has already started.</p>
+    </header>
+    <div class="row"><button class="btn" id="pqToggle" aria-pressed="false">Switch on a large quantum computer</button></div>
+    <div class="panel scroll-x">
+      <table class="pq">
+        <thead><tr><th>Primitive</th><th>Hard problem</th><th>Status</th><th>Why</th></tr></thead>
+        <tbody id="pqBody"></tbody>
+      </table>
+    </div>
+    <p class="callout small">Replacements: <b>ML-KEM</b> (FIPS 203) for key exchange, <b>ML-DSA</b> (FIPS 204) and <b>SLH-DSA</b> (FIPS 205) for signatures. Major browsers already negotiate the hybrid <span class="mono">X25519MLKEM768</span> in TLS.</p>
+  </div>
+  <aside class="notes" data-min="1.5">
+    <p>Optional. Toggle the switch: asymmetric crypto (RSA, DH, elliptic curves) breaks completely via Shor's algorithm. Symmetric crypto and hashes only lose about half their bits via Grover, so AES-256 and SHA-256 stay fine.</p>
+    <p>Hybrid means classical X25519 plus ML-KEM: you're safe if either one holds.</p>
+  </aside>
+</section>
+
+<section class="slide" id="rules" data-title="Rules for engineers" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Take this back to your codebase</p>
+      <h2>Eight rules for working engineers.</h2>
+      <p class="lede">Click a rule to see why it matters.</p>
+    </header>
+    <div class="rules">
+      <details class="reveal"><summary>Don't build your own crypto</summary><div>Use vetted, high-level libraries: libsodium, Google Tink, your platform's crypto API. Every slide today is a way a clever design failed.</div></details>
+      <details class="reveal"><summary>Use authenticated encryption</summary><div>AES-GCM or ChaCha20-Poly1305. Never ECB. Never CTR/CBC without a MAC. The bit-flip demo is why.</div></details>
+      <details class="reveal"><summary>Never reuse a nonce with the same key</summary><div>With GCM, one repeat leaks the XOR of two plaintexts (the two-time pad) and lets attackers forge tags. Use random 96-bit nonces with a key-rotation limit, or a counter.</div></details>
+      <details class="reveal"><summary>Hash passwords with Argon2id</summary><div>Or scrypt / bcrypt / PBKDF2 with a high work factor and a unique salt. Never plain SHA-256, never MD5.</div></details>
+      <details class="reveal"><summary>Get randomness from a CSPRNG</summary><div><code>crypto.getRandomValues</code>, Python <code>secrets</code>, Java <code>SecureRandom</code>, Go <code>crypto/rand</code>. <code>Math.random()</code> is predictable from a few outputs.</div></details>
+      <details class="reveal"><summary>Compare secrets in constant time</summary><div><code>==</code> stops at the first mismatch, and the timing leaks how many bytes were right. Use <code>crypto.timingSafeEqual</code>, <code>hmac.compare_digest</code>, <code>MessageDigest.isEqual</code>.</div></details>
+      <details class="reveal"><summary>Key management is the hard part</summary><div>Keys belong in a KMS, HSM or secrets manager, not in git or environment dumps. Plan rotation from day one. Kerckhoffs: the key is the only secret you have.</div></details>
+      <details class="reveal"><summary>TLS everywhere, and verify certificates</summary><div>Including internal service-to-service traffic. Never ship <code>verify=False</code> or <code>InsecureSkipVerify: true</code>: without certificate checks, TLS falls back to an unauthenticated DH that Mallory can sit in the middle of.</div></details>
+    </div>
+  </div>
+  <aside class="notes" data-min="2">
+    <p>Open two or three that match your team's stack. These are the practical takeaways; everything else today was the "why".</p>
+  </aside>
+</section>
+
+<section class="slide" id="quiz" data-title="Spot the bug" data-part="2">
+  <div class="slide-inner">
+    <header class="slide-head">
+      <p class="eyebrow">Quiz</p>
+      <h2>Spot the crypto bug.</h2>
+      <p class="lede">Each snippet compiles, passes tests, and is broken. Shout out the problem before revealing.</p>
+    </header>
+    <div class="quiz">
+      <div class="panel">
+        <pre class="code"><span class="cm">// password reset token</span>
+const token = Math.random().toString(36).slice(2);</pre>
+        <details class="reveal"><summary>Reveal</summary><div class="ans"><b>Predictable randomness.</b> Math.random isn't cryptographically secure. Use <code>crypto.randomBytes(32)</code> or <code>crypto.getRandomValues</code>.</div></details>
+      </div>
+      <div class="panel">
+        <pre class="code"><span class="cm"># store user password</span>
+user.pw = hashlib.sha256(password.encode()).hexdigest()</pre>
+        <details class="reveal"><summary>Reveal</summary><div class="ans"><b>Fast, unsalted hash.</b> Crackable at billions of guesses per second, and equal passwords give equal hashes. Use Argon2id.</div></details>
+      </div>
+      <div class="panel">
+        <pre class="code"><span class="cm">// verify webhook signature</span>
+if (req.headers["x-signature"] === hmac(body, secret)) { ... }</pre>
+        <details class="reveal"><summary>Reveal</summary><div class="ans"><b>Timing leak.</b> String comparison exits early. Use <code>crypto.timingSafeEqual</code> on equal-length buffers.</div></details>
+      </div>
+      <div class="panel">
+        <pre class="code"><span class="cm">// encrypt each record</span>
+const iv = new Uint8Array(12); <span class="cm">// all zeros</span>
+crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data);</pre>
+        <details class="reveal"><summary>Reveal</summary><div class="ans"><b>Nonce reuse.</b> Every record uses the same IV with the same key: the two-time pad, plus forged tags. Generate a fresh random IV per message and store it with the ciphertext.</div></details>
+      </div>
+    </div>
+  </div>
+  <aside class="notes" data-min="2">
+    <p>Give the room a few seconds per snippet. Each one maps to a slide: CSPRNG, password hashing, constant-time compare, two-time pad.</p>
+  </aside>
+</section>
+
+<section class="slide deep closing" id="thanks" data-title="Thanks and further reading" data-part="2">
+  <div class="slide-inner">
+    <p class="eyebrow">Thank you</p>
+    <h1>Questions?<br><span class="y">Ask away.</span></h1>
+    <div class="cols-3">
+      <div class="panel"><h3>Read</h3><ul class="small muted stack" style="gap:.3em;margin-top:.4em"><li><i>The Code Book</i>, Simon Singh: the history, as a story</li><li><i>Serious Cryptography</i>, J.-P. Aumasson: the engineering</li><li><i>Real-World Cryptography</i>, David Wong</li></ul></div>
+      <div class="panel"><h3>Practise</h3><ul class="small muted stack" style="gap:.3em;margin-top:.4em"><li><a href="https://cryptopals.com" target="_blank" rel="noopener">cryptopals.com</a>: break real crypto in code, from XOR to RSA</li><li><a href="https://cryptohack.org" target="_blank" rel="noopener">cryptohack.org</a>: interactive challenges</li></ul></div>
+      <div class="panel"><h3>Look up</h3><ul class="small muted stack" style="gap:.3em;margin-top:.4em"><li>OWASP Password Storage and Cryptographic Storage cheat sheets</li><li>RFC 8446 (TLS 1.3)</li><li>NIST FIPS 203 / 204 / 205</li></ul></div>
+    </div>
+    <div class="row"><a class="btn" href="#part1">Back to the start</a><a class="btn" href="#part2">Start of Part 2</a></div>
+  </div>
+  <aside class="notes" data-min="1">
+    <p>Recommend cryptopals to anyone who enjoyed the demos: the first set rebuilds the frequency-analysis and repeating-key XOR attacks from Part 1.</p>
+  </aside>
+</section>
+
+</main>
+
+<nav class="bar" id="bar" aria-label="Slide controls">
+  <div class="track"></div>
+  <div class="progress" id="progress"></div>
+  <div class="parts">
+    <span class="dot" aria-hidden="true"></span>
+    <button id="goP1" aria-label="Go to Part 1"><span class="long">Part </span>1<span class="long"> · Classical</span></button>
+    <button id="goP2" aria-label="Go to Part 2"><span class="long">Part </span>2<span class="long"> · Modern</span></button>
+  </div>
+  <div class="title"><b id="barTitle">From Caesar to TLS</b></div>
+  <span class="pgno tnum" id="barCount">01 / 31</span>
+  <div class="icons">
+    <button class="ib" id="btnPrev" aria-label="Previous slide" title="Previous slide"><span class="gs-icon" data-fb="←" aria-hidden="true">arrow_back</span></button>
+    <button class="ib" id="btnNext" aria-label="Next slide" title="Next slide"><span class="gs-icon" data-fb="→" aria-hidden="true">arrow_forward</span></button>
+    <button class="ib" id="btnNotes" aria-label="Speaker notes" aria-pressed="false" title="Speaker notes (N)"><span class="gs-icon" data-fb="N" aria-hidden="true">sticky_note_2</span></button>
+    <button class="ib" id="btnMenu" aria-label="All slides" title="All slides (M)"><span class="gs-icon" data-fb="≡" aria-hidden="true">menu</span></button>
+    <button class="ib opt" id="btnTheme" aria-label="Switch between light and dark" title="Light / dark (T)"><span class="gs-icon" data-fb="T" aria-hidden="true">contrast</span></button>
+    <button class="ib opt" id="btnFull" aria-label="Fullscreen" title="Fullscreen (F)"><span class="gs-icon" data-fb="F" aria-hidden="true">fullscreen</span></button>
+  </div>
+</nav>
+
+<div class="notes-panel" id="notesPanel" hidden>
+  <div class="nh"><b id="notesTitle"></b><span id="notesTime"></span><span>Elapsed <span class="tnum" id="notesClock">00:00</span></span><button class="btn" id="notesReset" style="font-size:.9em;padding:.2em .6em">Reset timer</button></div>
+  <div class="nb" id="notesBody"></div>
+</div>
+
+<div class="menu" id="menu" hidden>
+  <button class="btn close" id="menuClose">Close <span class="gs-icon" data-fb="×" aria-hidden="true">close</span></button>
+  <div class="menu-inner" id="menuInner"></div>
+</div>
+<script>
+/* ================= helpers ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const mod = (n, m) => ((n % m) + m) % m;
+const enc = new TextEncoder();
+const dec = new TextDecoder();
+const subtle = (window.crypto && crypto.subtle) || null;
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const toHex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+const fmt = n => n.toLocaleString('en-US');
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const hooks = {};
+const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+function shiftChar(ch, k) { const i = AZ.indexOf(ch.toUpperCase()); return i < 0 ? ch : AZ[mod(i + k, 26)]; }
+function caesar(s, k) { return [...s.toUpperCase()].map(c => shiftChar(c, k)).join(''); }
+function vigenere(s, key, sign = 1) {
+  const ks = [...key.toUpperCase()].filter(c => AZ.includes(c)).map(c => AZ.indexOf(c));
+  if (!ks.length) return s.toUpperCase();
+  let j = 0;
+  return [...s.toUpperCase()].map(c => { const i = AZ.indexOf(c); if (i < 0) return c; return AZ[mod(i + sign * ks[j++ % ks.length], 26)]; }).join('');
+}
+// English letter frequencies (%), A..Z
+const ENG = [8.17, 1.29, 2.78, 4.25, 12.70, 2.23, 2.02, 6.09, 6.97, 0.15, 0.77, 4.03, 2.41, 6.75, 7.51, 1.93, 0.10, 5.99, 6.33, 9.06, 2.76, 0.98, 2.36, 0.15, 1.97, 0.07];
+function counts(s) { const c = new Array(26).fill(0); for (const ch of s.toUpperCase()) { const i = AZ.indexOf(ch); if (i >= 0) c[i]++; } return c; }
+function chi2(s) { const c = counts(s); const n = c.reduce((a, b) => a + b, 0) || 1; let x = 0; for (let i = 0; i < 26; i++) { const e = ENG[i] / 100 * n; x += (c[i] - e) ** 2 / e; } return x; }
+function ioc(s) { const c = counts(s); const n = c.reduce((a, b) => a + b, 0); if (n < 2) return 0; return c.reduce((a, f) => a + f * (f - 1), 0) / (n * (n - 1)); }
+function shuffled(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function randBytes(n) { return crypto.getRandomValues(new Uint8Array(n)); }
+
+function scramble(el, target, dur = 650) {
+  cancelAnimationFrame(el._raf);
+  if (reducedMotion) { el.textContent = target; return; }
+  const pool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const t0 = performance.now();
+  const tick = now => {
+    const p = Math.min(1, (now - t0) / dur);
+    const n = Math.floor(p * target.length);
+    let s = target.slice(0, n);
+    for (let i = n; i < target.length; i++) s += target[i] === ' ' ? ' ' : pool[(Math.random() * pool.length) | 0];
+    el.textContent = s;
+    if (p < 1) el._raf = requestAnimationFrame(tick);
+  };
+  el._raf = requestAnimationFrame(tick);
+}
+
+function bars(el, values, labels) {
+  const max = Math.max(...values, 0.0001);
+  el.innerHTML = values.map((v, i) => `<div class="b" title="${labels[i]}: ${typeof v === 'number' ? +v.toFixed(2) : v}"><i style="height:${(v / max) * 82}%"></i><span>${labels[i]}</span></div>`).join('');
+}
+
+/* ================= Enigma I (rotors I-II-III, reflector B, rings at A) ================= */
+const ROTORS = {
+  I: { w: 'EKMFLGDQVZNTOWYHXUSPAIBRCJ', notch: 'Q' },
+  II: { w: 'AJDKSIRUXBLHWTMCQGZNPYFVOE', notch: 'E' },
+  III: { w: 'BDFHJLCPRTXVZNYEIWGAKMUSQO', notch: 'V' },
+};
+const UKW_B = 'YRUHQSLDPXNGOKMIEBFZCWVJAT';
+class Enigma {
+  constructor(pos = [0, 0, 0], order = ['I', 'II', 'III']) {
+    this.order = order; this.pos = pos.slice();
+    this.fw = order.map(n => [...ROTORS[n].w].map(c => AZ.indexOf(c)));
+    this.bw = this.fw.map(f => { const b = []; f.forEach((o, i) => { b[o] = i; }); return b; });
+    this.notch = order.map(n => AZ.indexOf(ROTORS[n].notch));
+    this.ref = [...UKW_B].map(c => AZ.indexOf(c));
+    this.lastPath = [];
+  }
+  step() {
+    const p = this.pos;
+    if (p[1] === this.notch[1]) { p[0] = (p[0] + 1) % 26; p[1] = (p[1] + 1) % 26; }
+    else if (p[2] === this.notch[2]) { p[1] = (p[1] + 1) % 26; }
+    p[2] = (p[2] + 1) % 26;
+  }
+  press(ch) {
+    this.step();
+    let c = AZ.indexOf(ch);
+    const path = [ch];
+    for (let r = 2; r >= 0; r--) { c = mod(this.fw[r][mod(c + this.pos[r], 26)] - this.pos[r], 26); path.push(AZ[c]); }
+    c = this.ref[c]; path.push(AZ[c]);
+    for (let r = 0; r <= 2; r++) { c = mod(this.bw[r][mod(c + this.pos[r], 26)] - this.pos[r], 26); path.push(AZ[c]); }
+    this.lastPath = path;
+    return AZ[c];
+  }
+  encrypt(s) { return [...s.toUpperCase()].map(c => AZ.includes(c) ? this.press(c) : c).join(''); }
+}
+
+/* ================= deck engine ================= */
+const slides = $$('.slide');
+const N = slides.length;
+let cur = 0;
+
+function updateChrome() {
+  const s = slides[cur];
+  $('#barTitle').textContent = s.dataset.title || '';
+  $('#barCount').textContent = `${String(cur + 1).padStart(2, '0')} / ${String(N).padStart(2, '0')}`;
+  $('#progress').style.width = `${((cur + 1) / N) * 100}%`;
+  $('#goP1').setAttribute('aria-current', s.dataset.part === '1');
+  $('#goP2').setAttribute('aria-current', s.dataset.part === '2');
+  $('#btnPrev').disabled = cur === 0;
+  $('#btnNext').disabled = cur === N - 1;
+  renderNotes();
+  $$('#menuInner li button').forEach(b => b.setAttribute('aria-current', +b.dataset.i === cur));
+}
+
+function go(i, fromHash = false) {
+  i = Math.max(0, Math.min(N - 1, i));
+  const changed = i !== cur;
+  if (changed) hooks[slides[cur].id]?.leave?.();
+  slides.forEach((s, k) => {
+    s.classList.toggle('active', k === i);
+    s.classList.toggle('before', k < i);
+    s.inert = k !== i;
+    s.setAttribute('aria-hidden', k === i ? 'false' : 'true');
+  });
+  cur = i;
+  const s = slides[i];
+  if (changed) s.scrollTop = 0;
+  updateChrome();
+  if (!fromHash && location.hash.slice(1) !== s.id) {
+    try { history.replaceState(null, '', '#' + s.id); } catch (e) { location.hash = s.id; }
+  }
+  if (changed || !s._entered) { s._entered = true; hooks[s.id]?.enter?.(); }
+}
+const next = () => go(cur + 1);
+const prev = () => go(cur - 1);
+const indexOfId = id => slides.findIndex(s => s.id === id);
+
+function fromHash() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  const i = indexOfId(id);
+  if (i >= 0) go(i, true);
+}
+window.addEventListener('hashchange', fromHash);
+// in-deck links (#id) navigate without relying on hashchange
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[href^="#"]');
+  if (!a) return;
+  const i = indexOfId(a.getAttribute('href').slice(1));
+  if (i >= 0) { e.preventDefault(); go(i); }
+});
+
+/* notes */
+const notesPanel = $('#notesPanel');
+let clockStart = Date.now();
+function renderNotes() {
+  const s = slides[cur];
+  const n = $('.notes', s);
+  $('#notesTitle').textContent = `${cur + 1}. ${s.dataset.title || ''}${s.dataset.optional ? ' (optional)' : ''}`;
+  $('#notesTime').textContent = n?.dataset.min ? `~${n.dataset.min} min` : '';
+  $('#notesBody').innerHTML = n ? n.innerHTML : '<p class="muted">No notes for this slide.</p>';
+}
+function toggleNotes(force) {
+  const show = force ?? notesPanel.hidden;
+  notesPanel.hidden = !show;
+  $('#btnNotes').setAttribute('aria-pressed', show);
+}
+setInterval(() => {
+  const t = Math.floor((Date.now() - clockStart) / 1000);
+  $('#notesClock').textContent = `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+}, 1000);
+$('#notesReset').addEventListener('click', () => { clockStart = Date.now(); });
+
+/* menu */
+const menu = $('#menu');
+(function buildMenu() {
+  const parts = { 1: 'Part 1 · Classical ciphers', 2: 'Part 2 · Modern cryptography' };
+  const mins = { 1: 0, 2: 0 };
+  slides.forEach(s => { mins[s.dataset.part] += parseFloat($('.notes', s)?.dataset.min || 0); });
+  $('#menuInner').innerHTML = [1, 2].map(p => `<div><h2>${parts[p]} <span class="tag">about ${Math.round(mins[p])} min</span></h2><ol>${slides.map((s, i) => s.dataset.part == p ? `<li><button data-i="${i}"><span class="n">${i + 1}</span><span class="t">${esc(s.dataset.title)}</span>${s.dataset.optional ? '<span class="tag">optional</span>' : ''}<span class="m">${$('.notes', s)?.dataset.min || ''} min</span></button></li>` : '').join('')}</ol></div>`).join('');
+  $('#menuInner').addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (b) { toggleMenu(false); go(+b.dataset.i); } });
+})();
+function toggleMenu(force) { const show = force ?? menu.hidden; menu.hidden = !show; if (show) $('#menuClose').focus(); }
+$('#menuClose').addEventListener('click', () => toggleMenu(false));
+
+/* theme + fullscreen */
+function toggleTheme() {
+  const root = document.documentElement;
+  const isDark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = isDark ? 'light' : 'dark';
+  document.dispatchEvent(new Event('themechange'));
+}
+function toggleFull() {
+  try {
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    else document.documentElement.requestFullscreen?.()?.catch?.(() => {});
+  } catch (e) { /* not available here */ }
+}
+
+$('#btnPrev').addEventListener('click', prev);
+$('#btnNext').addEventListener('click', next);
+$('#btnNotes').addEventListener('click', () => toggleNotes());
+$('#btnMenu').addEventListener('click', () => toggleMenu());
+$('#btnTheme').addEventListener('click', toggleTheme);
+$('#btnFull').addEventListener('click', toggleFull);
+$('#goP1').addEventListener('click', () => go(indexOfId('part1')));
+$('#goP2').addEventListener('click', () => go(indexOfId('part2')));
+
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const t = e.target;
+  if (t.matches && t.matches('input, textarea, select, [contenteditable="true"]')) {
+    if (e.key === 'Escape') t.blur();
+    return;
+  }
+  if (!menu.hidden) { if (e.key === 'Escape' || e.key === 'm' || e.key === 'M') { toggleMenu(false); e.preventDefault(); } return; }
+  const s = slides[cur];
+  if (s.dataset.keys === 'letters' && /^[a-zA-Z]$/.test(e.key)) { hooks[s.id]?.key?.(e.key.toUpperCase()); e.preventDefault(); return; }
+  switch (e.key) {
+    case 'ArrowRight': case 'PageDown': next(); break;
+    case ' ': if (t.closest && t.closest('button, summary, a')) return; e.shiftKey ? prev() : next(); break;
+    case 'ArrowLeft': case 'PageUp': prev(); break;
+    case 'Home': go(0); break;
+    case 'End': go(N - 1); break;
+    case 'n': case 'N': toggleNotes(); break;
+    case 'm': case 'M': toggleMenu(); break;
+    case 'f': case 'F': toggleFull(); break;
+    case 't': case 'T': toggleTheme(); break;
+    case 'Escape': toggleNotes(false); break;
+    default: return;
+  }
+  e.preventDefault();
+});
+
+/* swipe */
+let touch = null;
+document.addEventListener('touchstart', e => {
+  if (e.touches.length !== 1 || !e.target.closest || e.target.closest('input, textarea, select, canvas, .scroll-x, .crib-wrap, .bar, .menu, .notes-panel')) { touch = null; return; }
+  touch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (!touch) return;
+  const dx = e.changedTouches[0].clientX - touch.x, dy = e.changedTouches[0].clientY - touch.y;
+  if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8) dx < 0 ? next() : prev();
+  touch = null;
+}, { passive: true });
+
+/* Material Symbols: if the icon font cannot load (offline), fall back to plain glyphs */
+function checkIcons() {
+  const probe = document.createElement('span');
+  probe.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;font:300 24px 'Material Symbols Outlined';font-feature-settings:'liga'";
+  probe.textContent = 'arrow_forward';
+  document.body.appendChild(probe);
+  const w = probe.getBoundingClientRect().width;
+  probe.remove();
+  document.documentElement.classList.toggle('no-icons', w > 40);
+}
+if (document.fonts && document.fonts.ready) {
+  Promise.race([
+    document.fonts.load("300 24px 'Material Symbols Outlined'", 'arrow_forward').catch(() => {}).then(() => document.fonts.ready),
+    new Promise(r => setTimeout(r, 3500)),
+  ]).then(checkIcons);
+} else { checkIcons(); }
+
+</script>
+<script>
+/* ================= PART 1 DEMOS ================= */
+
+/* ---- hero: one message, five eras ---- */
+(() => {
+  const MSG = 'ATTACK AT DAWN';
+  const out = $('#heroOut'), cap = $('#heroCap');
+  const eras = {
+    plain: { cap: 'The message Alice wants to send. Pick an era above.', run: async () => MSG },
+    caesar: { cap: 'Every letter shifted 3 places. Julius Caesar used this for military orders.', run: async () => caesar(MSG, 3) },
+    vigenere: { cap: 'A different shift for each letter, set by the keyword LEMON. Unbroken for about 300 years.', run: async () => vigenere(MSG, 'LEMON') },
+    enigma: { cap: 'Rotors I-II-III, reflector B, start position AAA. The wiring changes after every key press.', run: async () => new Enigma([0, 0, 0]).encrypt(MSG) },
+    aes: {
+      cap: 'AES-256-GCM with a fresh random key: 14 bytes of ciphertext plus a 16-byte authentication tag. This is how the web does it today.',
+      run: async () => {
+        if (!subtle) return '(Web Crypto unavailable in this browser)';
+        const key = await subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+        const ct = await subtle.encrypt({ name: 'AES-GCM', iv: randBytes(12) }, key, enc.encode(MSG));
+        return toHex(ct).toUpperCase();
+      }
+    },
+  };
+  $('#eraRow').addEventListener('click', async e => {
+    const b = e.target.closest('[data-era]'); if (!b) return;
+    $$('#eraRow .era').forEach(x => x.setAttribute('aria-pressed', x === b));
+    const era = eras[b.dataset.era];
+    const text = await era.run();
+    out.classList.toggle('long', text.length > 20);
+    scramble(out, text, b.dataset.era === 'aes' ? 900 : 650);
+    cap.textContent = era.cap;
+  });
+})();
+
+/* ---- cast: attacks on the wire ---- */
+(() => {
+  const packet = $('#packet'), wire = $('#wire'), att = $('#attacker');
+  const from = $('#pkFrom'), body = $('#pkBody'), verdict = $('#castVerdict');
+  const goals = { eve: $('#goal-eve'), tamper: $('#goal-tamper'), spoof: $('#goal-spoof') };
+  const scenarios = {
+    none: { who: null, verdict: 'Bob receives “Pay Bob $10” from Alice. All good, so far.', cls: '' },
+    eve: { who: ['E', 'Eve', 'av-eve'], verdict: 'Bob receives the right message, but Eve read “Pay Bob $10” on the way. Nobody noticed. Confidentiality is broken.', cls: 'bad' },
+    tamper: { who: ['M', 'Mallory', 'av-mal'], change: ['From: Alice', 'Pay Mallory $10,000'], verdict: 'Bob receives “Pay Mallory $10,000” and has no way to tell it was changed. Integrity is broken.', cls: 'bad' },
+    spoof: { who: ['M', 'Mallory', 'av-mal'], start: ['From: Alice', 'Reset my password'], verdict: 'Mallory wrote this herself and signed it “Alice”. Bob believes it. Authenticity is broken.', cls: 'bad' },
+  };
+  let anim, timer;
+  function run(kind) {
+    const s = scenarios[kind];
+    Object.entries(goals).forEach(([k, el]) => el.classList.toggle('on', k === kind));
+    anim?.cancel(); clearTimeout(timer);
+    from.textContent = s.start ? s.start[0] : 'From: Alice';
+    body.textContent = s.start ? s.start[1] : 'Pay Bob $10';
+    att.hidden = !s.who;
+    if (s.who) { $('#attAv').textContent = s.who[0]; $('#attAv').className = 'avatar ' + s.who[2]; $('#attName').textContent = s.who[1] + (kind === 'eve' ? ' (reading)' : kind === 'spoof' ? ' (injecting)' : ' (editing)'); }
+    verdict.className = 'verdict'; verdict.textContent = 'Sending…';
+    const dur = reducedMotion ? 10 : 2200;
+    // left + translateX move together, so the packet stays inside the wire whatever its width
+    const at = f => ({ left: `${f * 100}%`, transform: `translate(${-f * 100}%, -50%)` });
+    anim = packet.animate([at(kind === 'spoof' ? 0.5 : 0), at(1)], { duration: kind === 'spoof' ? dur / 2 : dur, easing: 'cubic-bezier(.2,0,0,1)', fill: 'forwards' });
+    if (s.change) timer = setTimeout(() => { from.textContent = s.change[0]; body.textContent = s.change[1]; }, reducedMotion ? 0 : dur / 2);
+    anim.onfinish = () => { verdict.className = 'verdict ' + s.cls; verdict.textContent = s.verdict; };
+  }
+  $$('[data-attack]').forEach(b => b.addEventListener('click', () => run(b.dataset.attack)));
+})();
+
+/* ---- vocabulary pipeline ---- */
+(() => {
+  const p = $('#vPlain'), ka = $('#vKa'), kb = $('#vKb');
+  function upd() {
+    const c = caesar(p.value, +ka.value);
+    $('#vKaLab').textContent = ka.value; $('#vKbLab').textContent = kb.value;
+    $('#vCipher').textContent = c;
+    const back = caesar(c, -kb.value);
+    const el = $('#vBack');
+    el.textContent = back;
+    el.style.color = ka.value === kb.value ? 'var(--good-text)' : 'var(--bad-text)';
+  }
+  [p, ka, kb].forEach(x => x.addEventListener('input', upd));
+  upd();
+})();
+
+/* ---- Caesar wheel ---- */
+(() => {
+  const outer = $('#wheelOuter'), inner = $('#wheelInner');
+  const step = 360 / 26;
+  const mk = (r, cls) => '<circle class="mark" r="12" visibility="hidden"></circle>' + AZ.split('').map((c, i) => `<text data-i="${i}" class="${cls}" transform="rotate(${i * step}) translate(0,${-r})">${c}</text>`).join('');
+  const place = (group, r, i) => {
+    const m = $('.mark', group);
+    if (i < 0) { m.setAttribute('visibility', 'hidden'); return; }
+    m.setAttribute('transform', `rotate(${i * step}) translate(0,${-r})`);
+    m.setAttribute('visibility', 'visible');
+  };
+  outer.innerHTML = mk(158, 'o');
+  inner.innerHTML = mk(117, 'n');
+  const sh = $('#cShift'), pt = $('#cPlain');
+  function upd() {
+    const k = +sh.value;
+    inner.style.transform = `rotate(${-k * step}deg)`;
+    $('#wheelShift').textContent = k;
+    $('#cOut').textContent = caesar(pt.value, k);
+    const letters = [...pt.value.toUpperCase()].filter(c => AZ.includes(c));
+    const last = letters.length ? AZ.indexOf(letters[letters.length - 1]) : -1;
+    $$('text', outer).forEach(t => t.classList.toggle('lit', +t.dataset.i === last));
+    $$('text', inner).forEach(t => t.classList.toggle('lit', last >= 0 && +t.dataset.i === mod(last + k, 26)));
+    place(outer, 158, last);
+    place(inner, 117, last >= 0 ? mod(last + k, 26) : -1);
+    $('#cNote').textContent = k === 13
+      ? 'ROT13: shift 13 is its own inverse, so applying it twice gives back the original. Usenet used it to hide spoilers.'
+      : k === 0 ? 'Shift 0: the "encryption" does nothing. Still counts as a key, technically.'
+        : `Decrypting means shifting back by ${k} (or forward by ${26 - k}).`;
+  }
+  sh.addEventListener('input', upd); pt.addEventListener('input', upd);
+  $('#cRot13').addEventListener('click', () => { sh.value = 13; upd(); });
+  $('#cRandom').addEventListener('click', () => { sh.value = 1 + Math.floor(Math.random() * 25); upd(); });
+  upd();
+})();
+
+/* ---- brute force ---- */
+(() => {
+  const inp = $('#bfIn'), list = $('#bfList'), stat = $('#bfStat');
+  inp.value = caesar('Meet me by the server rack at noon and bring the backup keys', 11);
+  let timers = [];
+  function run() {
+    timers.forEach(clearTimeout); timers = [];
+    const c = inp.value;
+    const rows = [];
+    for (let k = 1; k <= 25; k++) { const p = caesar(c, -k); rows.push({ k, p, score: chi2(p) }); }
+    const best = rows.reduce((a, b) => (b.score < a.score ? b : a));
+    list.innerHTML = rows.map(r => `<div class="bf-row${r === best ? ' best' : ''}" title="${esc(r.p)}"><b>k=${String(r.k).padStart(2, '0')}</b><span>${esc(r.p)}</span></div>`).join('');
+    const els = $$('.bf-row', list);
+    els.forEach((el, i) => timers.push(setTimeout(() => el.classList.add('show'), reducedMotion ? 0 : i * 45)));
+    timers.push(setTimeout(() => { stat.textContent = `25 keys tried. Best match against English: k = ${best.k}.`; }, reducedMotion ? 0 : 25 * 45));
+    stat.textContent = 'Trying keys…';
+  }
+  $('#bfRun').addEventListener('click', run);
+  hooks.bruteforce = { leave() { /* keep results */ } };
+})();
+
+/* ---- substitution ---- */
+(() => {
+  let key = shuffled(AZ.split(''));
+  function upd() {
+    $('#subKey').innerHTML = `<span class="lab">plain</span>${AZ.split('').map(c => `<span>${c}</span>`).join('')}<span class="lab">cipher</span>${key.map(c => `<span class="k2">${c}</span>`).join('')}`;
+    $('#subOut').textContent = [...$('#subIn').value.toUpperCase()].map(c => { const i = AZ.indexOf(c); return i < 0 ? c : key[i]; }).join('');
+  }
+  $('#subIn').addEventListener('input', upd);
+  $('#subShuffle').addEventListener('click', () => { key = shuffled(AZ.split('')); upd(); });
+  upd();
+})();
+
+/* ---- frequency analysis ---- */
+const FREQ_TEXT = 'Every engineer who ships software eventually has to protect a secret. It might be a password, an access token, a private message, or the card number of a customer. For most of history, people protected secrets by scrambling the letters of a message so that only the intended reader could put them back in order. This worked well until someone noticed that in any language some letters appear far more often than others. In English the letter e is the most common, followed by t, a and o. Count the symbols in a long enough message and the secret starts to leak.';
+(() => {
+  const ENG_ORDER = AZ.split('').map((c, i) => [c, ENG[i]]).sort((a, b) => b[1] - a[1]);
+  bars($('#fqEng'), ENG_ORDER.map(x => x[1]), ENG_ORDER.map(x => x[0]));
+  let key, cipher, guess, cnt;
+  const sheet = $('#fqSheet');
+  function newPuzzle() {
+    key = shuffled(AZ.split('')); // plain index -> cipher letter
+    cipher = [...FREQ_TEXT.toUpperCase()].map(c => { const i = AZ.indexOf(c); return i < 0 ? c : key[i]; }).join('');
+    guess = {};
+    cnt = counts(cipher);
+    const order = AZ.split('').map((c, i) => [c, cnt[i]]).sort((a, b) => b[1] - a[1]);
+    bars($('#fqCip'), order.map(x => x[1]), order.map(x => x[0]));
+    sheet.innerHTML = AZ.split('').map((c, i) => `<label class="cell"><b>${c}</b><small>${cnt[i]}</small><input type="text" maxlength="1" data-c="${c}" aria-label="Guess for cipher letter ${c}" ${cnt[i] ? '' : 'disabled'}></label>`).join('');
+    render();
+  }
+  function render() {
+    $('#fqText').innerHTML = [...cipher].map(c => {
+      if (!AZ.includes(c)) return esc(c);
+      return guess[c] ? `<span class="g">${guess[c]}</span>` : `<span class="u">${c.toLowerCase()}</span>`;
+    }).join('');
+    const used = {};
+    Object.values(guess).forEach(g => { used[g] = (used[g] || 0) + 1; });
+    $$('input', sheet).forEach(inp => { inp.value = guess[inp.dataset.c] || ''; inp.classList.toggle('dup', !!inp.value && used[inp.value] > 1); });
+    const present = AZ.split('').filter((c, i) => cnt[i] > 0);
+    const right = present.filter(c => guess[c] && key.indexOf(c) === AZ.indexOf(guess[c])).length;
+    $('#fqScore').textContent = `${right} of ${present.length} letters correct`;
+  }
+  sheet.addEventListener('input', e => {
+    const inp = e.target; const v = inp.value.toUpperCase().replace(/[^A-Z]/g, '');
+    if (v) guess[inp.dataset.c] = v; else delete guess[inp.dataset.c];
+    render();
+    if (v) { const nextInp = $$('input:not([disabled])', sheet)[$$('input:not([disabled])', sheet).indexOf(inp) + 1]; nextInp?.focus(); }
+  });
+  $('#fqRank').addEventListener('click', () => {
+    const order = AZ.split('').map((c, i) => [c, cnt[i]]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+    guess = {};
+    order.forEach(([c], r) => { guess[c] = ENG_ORDER[r][0]; });
+    render();
+  });
+  $('#fqClear').addEventListener('click', () => { guess = {}; render(); });
+  $('#fqHint').addEventListener('click', () => {
+    const todo = AZ.split('').map((c, i) => [c, cnt[i]]).filter(([c, n]) => n > 0 && !(guess[c] && key.indexOf(c) === AZ.indexOf(guess[c]))).sort((a, b) => b[1] - a[1]);
+    if (!todo.length) return;
+    const c = todo[0][0], real = AZ[key.indexOf(c)];
+    Object.keys(guess).forEach(k => { if (guess[k] === real) delete guess[k]; });
+    guess[c] = real; render();
+  });
+  $('#fqReveal').addEventListener('click', () => { guess = {}; key.forEach((c, i) => { if (cnt[AZ.indexOf(c)]) guess[c] = AZ[i]; }); render(); });
+  $('#fqNew').addEventListener('click', newPuzzle);
+  newPuzzle();
+})();
+
+/* ---- Vigenère ---- */
+(() => {
+  const k = $('#vgKey'), p = $('#vgIn');
+  function upd() {
+    const ks = [...k.value.toUpperCase()].filter(c => AZ.includes(c));
+    const c = vigenere(p.value, k.value);
+    $('#vgOut').textContent = c;
+    let j = 0, cells = '<span class="lab">plain</span><span class="lab">key</span><span class="lab">cipher</span>';
+    [...p.value.toUpperCase()].forEach((ch, i) => {
+      if (!AZ.includes(ch)) return;
+      const kc = ks.length ? ks[j++ % ks.length] : 'A';
+      cells += `<span class="p">${ch}</span><span class="k">${kc}</span><span class="c">${c[i]}</span>`;
+    });
+    $('#vgTable').innerHTML = cells;
+    const cText = caesar(FREQ_TEXT, 3), vText = vigenere(FREQ_TEXT, k.value);
+    bars($('#vgBarsC'), counts(cText), AZ.split(''));
+    bars($('#vgBarsV'), counts(vText), AZ.split(''));
+    $('#vgIoc').textContent = ioc(vText).toFixed(3);
+  }
+  k.addEventListener('input', upd); p.addEventListener('input', upd);
+  upd();
+})();
+
+/* ---- Enigma simulator ---- */
+(() => {
+  const machine = new Enigma([0, 0, 0]);
+  const names = ['I', 'II', 'III'];
+  $('#enRotors').innerHTML = names.map((n, r) => `<div class="rotor"><small>rotor ${n}</small><button data-r="${r}" data-d="1" aria-label="Rotor ${n} up"><span class="gs-icon" data-fb="+" aria-hidden="true">keyboard_arrow_up</span></button><div class="rotor-win" id="rw${r}">A</div><button data-r="${r}" data-d="-1" aria-label="Rotor ${n} down"><span class="gs-icon" data-fb="−" aria-hidden="true">keyboard_arrow_down</span></button></div>`).join('');
+  const rowsK = ['QWERTZUIO', 'ASDFGHJK', 'PYXCVBNML'];
+  $('#enLamps').innerHTML = rowsK.map(r => `<div class="lrow">${[...r].map(c => `<span class="lamp" data-l="${c}">${c}</span>`).join('')}</div>`).join('');
+  $('#enKeys').innerHTML = rowsK.map(r => `<div class="lrow">${[...r].map(c => `<button class="key" data-k="${c}">${c}</button>`).join('')}</div>`).join('');
+  let tin = '', tout = '', lampT;
+  const win = () => machine.pos.forEach((p, r) => { $('#rw' + r).textContent = AZ[p]; });
+  const group = s => s.replace(/(.{5})/g, '$1 ').trim();
+  function press(ch) {
+    const o = machine.press(ch);
+    tin += ch; tout += o;
+    $('#enIn').textContent = group(tin.slice(-40)); $('#enOut').textContent = group(tout.slice(-40));
+    win();
+    $$('.lamp').forEach(l => l.classList.toggle('on', l.dataset.l === o));
+    const key = $(`.key[data-k="${ch}"]`); key?.classList.add('down'); setTimeout(() => key?.classList.remove('down'), 140);
+    clearTimeout(lampT); lampT = setTimeout(() => $$('.lamp.on').forEach(l => l.classList.remove('on')), 900);
+    const p = machine.lastPath;
+    $('#enPath').innerHTML = `<b>${p[0]}</b> → III:${p[1]} → II:${p[2]} → I:${p[3]} → reflector:<b>${p[4]}</b> → I:${p[5]} → II:${p[6]} → III:<b>${p[7]}</b> · lamp <b class="hl">${o}</b>`;
+  }
+  function reset() { machine.pos = [0, 0, 0]; tin = tout = ''; $('#enIn').textContent = ''; $('#enOut').textContent = ''; $('#enPath').textContent = 'Signal path appears here.'; win(); }
+  $('#enKeys').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) press(b.dataset.k); });
+  $('#enRotors').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; const r = +b.dataset.r; machine.pos[r] = mod(machine.pos[r] + +b.dataset.d, 26); win(); });
+  $('#enReset').addEventListener('click', reset);
+  $('#enA5').addEventListener('click', () => { reset(); [0, 1, 2, 3, 4].forEach(i => setTimeout(() => press('A'), reducedMotion ? 0 : i * 260)); });
+  hooks.enigma = { key: press };
+})();
+
+/* ---- crib dragging ---- */
+(() => {
+  const CRIB = 'WETTERVORHERSAGE';
+  const PLAIN = 'VONSTATIONNORDWETTERVORHERSAGEREGENWINDSTAERKEVIER';
+  const CT = new Enigma([7, 20, 11]).encrypt(PLAIN);
+  const maxOff = CT.length - CRIB.length;
+  const clashAt = off => [...CRIB].map((c, i) => CT[off + i] === c);
+  const possible = off => !clashAt(off).some(Boolean);
+  const slider = $('#cribPos');
+  slider.max = maxOff;
+  const strip = $('#cribStrip');
+  strip.innerHTML = Array.from({ length: maxOff + 1 }, (_, o) => `<button data-o="${o}" class="${possible(o) ? '' : 'no'}" aria-label="Position ${o}">${o}</button>`).join('');
+  const nPossible = Array.from({ length: maxOff + 1 }, (_, o) => possible(o)).filter(Boolean).length;
+  function upd() {
+    const off = +slider.value;
+    $('#cribPosLab').textContent = off;
+    const cl = clashAt(off);
+    let html = '';
+    for (let i = 0; i < CT.length; i++) {
+      const ci = i - off;
+      const inCrib = ci >= 0 && ci < CRIB.length;
+      html += `<span class="ix">${i}</span><span class="ci">${CT[i]}</span><span class="cr${inCrib && cl[ci] ? ' clash' : ''}">${inCrib ? CRIB[ci] : ''}</span>`;
+    }
+    $('#cribGrid').innerHTML = html;
+    const n = cl.filter(Boolean).length;
+    const v = $('#cribVerdict');
+    v.className = 'verdict ' + (n ? 'bad' : 'good');
+    v.textContent = n
+      ? `Position ${off} is impossible: ${n} letter${n > 1 ? 's' : ''} would encrypt to ${n > 1 ? 'themselves' : 'itself'}.`
+      : `Position ${off} survives. ${nPossible} of ${maxOff + 1} positions survive in total; ${maxOff + 1 - nPossible} were eliminated without touching a rotor.`;
+    $$('button', strip).forEach(b => b.classList.toggle('sel', +b.dataset.o === off));
+  }
+  slider.addEventListener('input', upd);
+  strip.addEventListener('click', e => { const b = e.target.closest('[data-o]'); if (b) { slider.value = b.dataset.o; upd(); } });
+  upd();
+})();
+
+/* ---- Kerckhoffs poll ---- */
+(() => {
+  const out = $('#pollOut');
+  $$('[data-poll]').forEach(b => b.addEventListener('click', () => {
+    $$('[data-poll]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    out.hidden = false;
+    out.className = 'verdict ' + (b.dataset.poll === 'b' ? 'good' : 'bad');
+    out.textContent = b.dataset.poll === 'b'
+      ? 'Right. AES has survived 25 years of public attack. That track record is the security argument.'
+      : 'Risky. A secret algorithm has only been checked by the people who wrote it, and it can be recovered from any binary that ships it.';
+  }));
+})();
+
+/* ---- XOR / one-time pad ---- */
+(() => {
+  let keyByte = 0b10110101;
+  const ch = $('#xorChar');
+  const bitsOf = n => [...n.toString(2).padStart(8, '0')].map(Number);
+  const printable = n => (n >= 33 && n < 127 ? String.fromCharCode(n) : '·');
+  function upd() {
+    const p = (ch.value || 'H').charCodeAt(0) & 0xff;
+    const c = p ^ keyByte;
+    const row = (lab, n, clickable, note) => `<span class="lab">${lab}</span>${bitsOf(n).map((b, i) => clickable ? `<button class="bit ${b ? 'one' : 'zero'}" data-i="${i}" aria-label="Key bit ${i}">${b}</button>` : `<span class="bit ${b ? 'one' : 'zero'}">${b}</span>`).join('')}<span class="ch">${note}</span>`;
+    $('#xorBits').innerHTML =
+      row('plaintext', p, false, `'${printable(p)}'`) +
+      row('⊕ key', keyByte, true, `0x${keyByte.toString(16).padStart(2, '0')}`) +
+      '<span class="sep"></span>' +
+      row('= cipher', c, false, `0x${c.toString(16).padStart(2, '0')}`) +
+      row('⊕ key', keyByte, false, '') +
+      '<span class="sep"></span>' +
+      row('= plain', c ^ keyByte, false, `'${printable(c ^ keyByte)}'`);
+  }
+  $('#xorBits').addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (b) { keyByte ^= 1 << (7 - +b.dataset.i); upd(); } });
+  ch.addEventListener('input', upd);
+  $('#xorRand').addEventListener('click', () => { keyByte = randBytes(1)[0]; upd(); });
+  upd();
+
+  const SECRET = 'ATTACK AT DAWN';
+  const pad = randBytes(SECRET.length);
+  const C = enc.encode(SECRET).map((b, i) => b ^ pad[i]);
+  $('#otpC').textContent = toHex(C);
+  const g = $('#otpGuess');
+  function updGuess() {
+    const guess = g.value.toUpperCase().padEnd(SECRET.length, ' ').slice(0, SECRET.length);
+    const k = enc.encode(guess).map((b, i) => b ^ C[i]);
+    $('#otpK').textContent = toHex(k);
+    $('#otpNote').innerHTML = `With this key, the ciphertext decrypts to <b class="mono hl">${esc(guess)}</b>. Eve has no way to tell whether this key is more likely than any other.`;
+  }
+  g.addEventListener('input', updGuess);
+  $$('[data-guess]').forEach(b => b.addEventListener('click', () => { g.value = b.dataset.guess; updGuess(); }));
+  updGuess();
+})();
+
+/* ---- two-time pad ---- */
+(() => {
+  const W = 160, H = 80;
+  function rasterize(draw) {
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    x.fillStyle = '#000'; x.fillRect(0, 0, W, H); x.fillStyle = '#fff'; x.strokeStyle = '#fff';
+    draw(x);
+    const d = x.getImageData(0, 0, W, H).data;
+    const bits = new Uint8Array(W * H);
+    for (let i = 0; i < bits.length; i++) bits[i] = d[i * 4] > 127 ? 1 : 0;
+    return bits;
+  }
+  const font = (w, px) => `${w} ${px}px Montserrat, system-ui, sans-serif`;
+  let P1, P2;
+  const K = new Uint8Array(W * H).map(() => Math.random() < 0.5 ? 1 : 0);
+  function makeImages() {
+    P1 = rasterize(x => { x.font = font(700, 19); x.textAlign = 'center'; x.fillText('TOP SECRET', W / 2, 34); x.font = font(600, 19); x.fillText('PLAN B', W / 2, 62); });
+    P2 = rasterize(x => {
+      x.lineWidth = 7; x.beginPath(); x.arc(40, 40, 20, 0, Math.PI * 2); x.stroke();
+      x.fillRect(58, 36, 72, 9); x.fillRect(110, 45, 8, 16); x.fillRect(124, 45, 8, 12);
+    });
+  }
+  const xor = (a, b) => a.map((v, i) => v ^ b[i]);
+  let hidden = false, revealed = false;
+  function paint(id, bits, dim = false) {
+    const cv = $('#' + id), ctx = cv.getContext('2d');
+    const img = ctx.createImageData(W, H);
+    const on = hexRgb(cssVar('--fg')), off = hexRgb(cssVar('--bg'));
+    for (let i = 0; i < W * H; i++) {
+      const col = bits && bits[i] ? on : off;
+      img.data.set([col[0], col[1], col[2], 255], i * 4);
+    }
+    ctx.putImageData(img, 0, 0);
+    if (dim || !bits) { ctx.fillStyle = cssVar('--surface-2'); ctx.fillRect(0, 0, W, H); ctx.fillStyle = cssVar('--muted'); ctx.font = '500 13px Montserrat, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(bits ? 'hidden' : '?', W / 2, H / 2 + 4); }
+  }
+  function draw() {
+    paint('tt1', P1, hidden); paint('tt2', P2, hidden); paint('ttK', K, hidden);
+    paint('ttC1', xor(P1, K)); paint('ttC2', xor(P2, K));
+    paint('ttX', revealed ? xor(xor(P1, K), xor(P2, K)) : null);
+    $('#ttXcap').textContent = revealed ? 'C₁ ⊕ C₂ = P₁ ⊕ P₂ (the key cancelled out)' : 'C₁ ⊕ C₂ = ?';
+  }
+  $('#ttGo').addEventListener('click', () => { revealed = !revealed; $('#ttGo').textContent = revealed ? 'Undo XOR' : 'XOR the two ciphertexts'; draw(); });
+  $('#ttHide').addEventListener('click', () => { hidden = !hidden; $('#ttHide').textContent = hidden ? 'Show plaintexts' : 'Hide plaintexts'; draw(); });
+  document.addEventListener('themechange', () => setTimeout(draw, 30));
+  matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', () => setTimeout(draw, 30));
+  hooks.twotime = { enter() { makeImages(); draw(); } };
+  makeImages(); draw();
+  if (document.fonts?.ready) document.fonts.ready.then(() => { makeImages(); draw(); });
+})();
+function hexRgb(c) {
+  c = c.trim();
+  if (c.startsWith('#')) { const h = c.length === 4 ? [...c.slice(1)].map(x => x + x).join('') : c.slice(1); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
+  const m = c.match(/\d+/g); return m ? m.slice(0, 3).map(Number) : [0, 0, 0];
+}
+
+</script>
+<script>
+/* ================= PART 2 DEMOS ================= */
+const needCrypto = el => { if (!subtle) { el.textContent = 'Web Crypto is not available in this browser context.'; return true; } return false; };
+const sha256 = async data => new Uint8Array(await subtle.digest('SHA-256', typeof data === 'string' ? enc.encode(data) : data));
+
+/* ---- toolbox ---- */
+(() => {
+  const T = {
+    hash: { name: 'Hash function', ex: 'SHA-256, SHA-3, BLAKE3', goal: 'Integrity: a fingerprint that changes if the data changes', keys: 'No key at all', use: ['Git commit and object IDs', 'Download checksums, Docker image digests', 'Password storage (inside a slow KDF)', 'Building block of HMAC and signatures'], go: 'hashing' },
+    aead: { name: 'Authenticated encryption', ex: 'AES-GCM, ChaCha20-Poly1305', goal: 'Confidentiality and integrity together', keys: 'One shared secret key', use: ['Every TLS record after the handshake', 'Disk and database encryption', 'Encrypted cookies and tokens', 'Signal / WhatsApp message bodies'], go: 'aes' },
+    mac: { name: 'Message authentication code', ex: 'HMAC-SHA256, Poly1305', goal: 'Integrity and authenticity between parties who share a key', keys: 'One shared secret key', use: ['Webhook signature headers', 'JWT with HS256', 'Signed session cookies', 'API request signing (e.g. AWS SigV4)'], go: 'bitflip' },
+    kex: { name: 'Key exchange', ex: 'X25519, ECDH P-256, ML-KEM', goal: 'Two strangers agree on a shared secret over a public channel', keys: 'A fresh key pair per session', use: ['TLS and HTTPS', 'SSH', 'WireGuard and other VPNs', 'Signal protocol'], go: 'dh' },
+    sig: { name: 'Digital signature', ex: 'Ed25519, ECDSA, RSA-PSS, ML-DSA', goal: 'Authenticity: anyone can verify, only the owner can sign', keys: 'Key pair: private signs, public verifies', use: ['TLS certificates', 'JWT with RS256 / ES256', 'Code, package and container signing', 'Signed git commits'], go: 'signatures' },
+  };
+  function show(k) {
+    const t = T[k];
+    $$('#tbList [data-tb]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tb === k));
+    $('#tbCard').innerHTML = `<h3>${t.name}</h3><p class="mono small hl-text">${t.ex}</p><dl class="kv"><dt>gives you</dt><dd style="font-family:var(--font-sans)">${t.goal}</dd><dt>keys</dt><dd style="font-family:var(--font-sans)">${t.keys}</dd></dl><div><p class="small muted">You already use it in</p><ul class="small">${t.use.map(u => `<li>${u}</li>`).join('')}</ul></div><div><a class="btn" href="#${t.go}">Go to the demo <span class="gs-icon" data-fb="→" aria-hidden="true">arrow_forward</span></a></div>`;
+  }
+  $('#tbList').addEventListener('click', e => { const b = e.target.closest('[data-tb]'); if (b) show(b.dataset.tb); });
+  show('hash');
+})();
+
+/* ---- hash avalanche ---- */
+(() => {
+  const a = $('#hA'), b = $('#hB'), grid = $('#hGrid');
+  grid.innerHTML = '<i></i>'.repeat(256);
+  const cells = $$('i', grid);
+  let seq = 0;
+  async function upd() {
+    if (needCrypto($('#hHa'))) return;
+    const my = ++seq;
+    const [ha, hb] = await Promise.all([sha256(a.value), sha256(b.value)]);
+    if (my !== seq) return;
+    const xa = toHex(ha), xb = toHex(hb);
+    $('#hHa').textContent = xa;
+    $('#hHb').innerHTML = [...xb].map((c, i) => c === xa[i] ? c : `<span class="d">${c}</span>`).join('');
+    let n = 0;
+    for (let i = 0; i < 256; i++) { const d = ((ha[i >> 3] ^ hb[i >> 3]) >> (7 - (i & 7))) & 1; n += d; cells[i].classList.toggle('d', !!d); }
+    $('#hCount').textContent = n;
+  }
+  a.addEventListener('input', upd); b.addEventListener('input', upd);
+  upd();
+})();
+
+/* ---- password cracking, salt, KDF ---- */
+(() => {
+  let target = '', pin = '';
+  async function leak() {
+    if (needCrypto($('#pwHash'))) return;
+    pin = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+    target = toHex(await sha256(pin));
+    $('#pwHash').textContent = target;
+    const o = $('#pwOut'); o.className = 'verdict'; o.textContent = 'PIN unknown. 10,000 possibilities.';
+  }
+  $('#pwNew').addEventListener('click', leak);
+  $('#pwCrack').addEventListener('click', async () => {
+    const o = $('#pwOut'); const btn = $('#pwCrack'); btn.disabled = true;
+    const t0 = performance.now(); let found = null, tried = 0;
+    for (let s = 0; s < 10000 && !found; s += 500) {
+      const batch = [];
+      for (let i = s; i < s + 500; i++) { const g = String(i).padStart(4, '0'); batch.push(sha256(g).then(h => (toHex(h) === target ? g : null))); }
+      const res = await Promise.all(batch);
+      found = res.find(Boolean) || null;
+      tried = found ? +found + 1 : s + 500;
+      o.textContent = `Trying… ${fmt(tried)} guesses`;
+    }
+    const ms = performance.now() - t0;
+    o.className = 'verdict bad';
+    o.textContent = `Cracked: PIN = ${found}, after ${fmt(tried)} guesses in ${ms.toFixed(0)} ms. In a browser tab.`;
+    btn.disabled = false;
+  });
+  leak();
+
+  // salt
+  const users = [['alice', 'hunter2'], ['bob', 'hunter2'], ['carol', 'correct horse']];
+  const salts = users.map(() => toHex(randBytes(8)));
+  let salted = false;
+  async function saltRows() {
+    if (!subtle) return;
+    const hs = await Promise.all(users.map(([, pw], i) => sha256((salted ? salts[i] : '') + pw)));
+    const hx = hs.map(h => toHex(h).slice(0, 24) + '…');
+    $('#saltRows').innerHTML = users.map(([u, pw], i) => {
+      const dup = hx.filter(x => x === hx[i]).length > 1;
+      return `<dt>${u}${salted ? ` <span class="mono small">salt ${salts[i].slice(0, 8)}</span>` : ''}</dt><dd class="hex${dup ? ' dup-hash' : ''}">${hx[i]}</dd>`;
+    }).join('');
+  }
+  $('#saltToggle').addEventListener('click', () => { salted = !salted; $('#saltToggle').setAttribute('aria-pressed', salted); $('#saltToggle').textContent = salted ? 'Remove salt' : 'Add random salt per user'; saltRows(); });
+  saltRows();
+
+  // KDF timing
+  $('#kdfRun').addEventListener('click', async () => {
+    const o = $('#kdfOut'); if (needCrypto(o)) return;
+    const btn = $('#kdfRun'); btn.disabled = true; o.className = 'verdict'; o.textContent = 'Deriving…';
+    const km = await subtle.importKey('raw', enc.encode('1234'), 'PBKDF2', false, ['deriveBits']);
+    const t0 = performance.now();
+    await subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: randBytes(16), iterations: 600000 }, km, 256);
+    const ms = performance.now() - t0;
+    const all = ms * 10000 / 1000;
+    o.className = 'verdict good';
+    o.textContent = `One guess: ${ms.toFixed(0)} ms. All 10,000 PINs: about ${all < 120 ? all.toFixed(0) + ' seconds' : (all / 60).toFixed(0) + ' minutes'} instead of milliseconds.`;
+    btn.disabled = false;
+  });
+})();
+
+/* ---- AES-GCM live ---- */
+(() => {
+  let key, key2, last = null;
+  async function init() {
+    if (needCrypto($('#aesKey'))) return;
+    key = await subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+    key2 = await subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    $('#aesKey').textContent = toHex(await subtle.exportKey('raw', key));
+  }
+  const ready = init();
+  async function encrypt() {
+    await ready; if (!key) return;
+    const iv = randBytes(12);
+    const ct = new Uint8Array(await subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode($('#aesIn').value)));
+    last = { iv, ct };
+    $('#aesIv').textContent = toHex(iv);
+    const h = toHex(ct); const tagStart = (ct.length - 16) * 2;
+    $('#aesCt').innerHTML = `${h.slice(0, tagStart)}<span class="tg">${h.slice(tagStart)}</span>`;
+    const o = $('#aesOut'); o.className = 'verdict'; o.textContent = `${ct.length - 16} bytes of ciphertext + 16-byte tag. Ready to decrypt.`;
+  }
+  async function decrypt(k, label) {
+    const o = $('#aesOut');
+    if (!last) { o.textContent = 'Encrypt something first.'; return; }
+    try {
+      const pt = await subtle.decrypt({ name: 'AES-GCM', iv: last.iv }, k, last.ct);
+      o.className = 'verdict good'; o.textContent = `Decrypted ${label}: “${dec.decode(pt)}”`;
+    } catch (e) {
+      o.className = 'verdict bad'; o.textContent = `Rejected ${label}: authentication failed (${e.name}). AES-GCM refuses to return anything.`;
+    }
+  }
+  $('#aesEnc').addEventListener('click', encrypt);
+  $('#aesEnc2').addEventListener('click', encrypt);
+  $('#aesDec').addEventListener('click', () => decrypt(key, 'with the right key'));
+  $('#aesDecWrong').addEventListener('click', () => decrypt(key2, 'with a different key'));
+  hooks.aes = { enter() { if (!last) encrypt(); } };
+})();
+
+/* ---- ECB vs CTR image ---- */
+(() => {
+  const W = 192, H = 128, TX = W / 4, TY = H / 4;
+  const cv = $('#ecbCanvas'), ctx = cv.getContext('2d');
+  const caps = {
+    plain: 'The original image. Each 4×4 pixel tile is one 16-byte AES block.',
+    ecb: 'AES-ECB: every block is properly encrypted, yet the padlock is still visible. Identical tiles became identical ciphertext blocks.',
+    ctr: 'AES-CTR: a counter makes every block unique. Pure noise, nothing leaks.',
+  };
+  const bufs = {};
+  function drawSource() {
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    const g = v => `rgb(${v},${v},${v})`;
+    x.fillStyle = g(40); x.fillRect(0, 0, W, H);
+    // padlock
+    x.strokeStyle = g(200); x.lineWidth = 14;
+    x.beginPath(); x.moveTo(44, 60); x.lineTo(44, 40); x.arc(72, 40, 28, Math.PI, 0); x.lineTo(100, 60); x.stroke();
+    x.fillStyle = g(200); x.fillRect(28, 56, 88, 60);
+    x.fillStyle = g(40); x.beginPath(); x.arc(72, 80, 9, 0, Math.PI * 2); x.fill(); x.fillRect(67, 82, 10, 20);
+    // key
+    x.strokeStyle = g(120); x.lineWidth = 9; x.beginPath(); x.arc(146, 40, 15, 0, Math.PI * 2); x.stroke();
+    x.fillStyle = g(120); x.fillRect(141, 54, 10, 64); x.fillRect(151, 92, 18, 8); x.fillRect(151, 106, 12, 8);
+    const d = x.getImageData(0, 0, W, H).data;
+    const levels = [40, 120, 200];
+    const px = new Uint8Array(W * H);
+    for (let i = 0; i < px.length; i++) { const v = d[i * 4]; px[i] = levels.reduce((a, b) => (Math.abs(b - v) < Math.abs(a - v) ? b : a)); }
+    // pack into blocks: block b = tile (tx,ty); byte j -> pixel (tx*4 + j%4, ty*4 + j>>2)
+    const blocks = new Uint8Array(TX * TY * 16);
+    for (let ty = 0; ty < TY; ty++) for (let tx = 0; tx < TX; tx++) for (let j = 0; j < 16; j++) blocks[(ty * TX + tx) * 16 + j] = px[(ty * 4 + (j >> 2)) * W + tx * 4 + (j & 3)];
+    return blocks;
+  }
+  function render(blocks) {
+    const img = ctx.createImageData(W, H);
+    for (let ty = 0; ty < TY; ty++) for (let tx = 0; tx < TX; tx++) for (let j = 0; j < 16; j++) {
+      const v = blocks[(ty * TX + tx) * 16 + j];
+      const p = ((ty * 4 + (j >> 2)) * W + tx * 4 + (j & 3)) * 4;
+      img.data[p] = img.data[p + 1] = img.data[p + 2] = v; img.data[p + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  async function build() {
+    bufs.plain = drawSource();
+    render(bufs.plain);
+    if (!subtle) return;
+    const raw = randBytes(16);
+    const kCbc = await subtle.importKey('raw', raw, 'AES-CBC', false, ['encrypt']);
+    const kCtr = await subtle.importKey('raw', raw, 'AES-CTR', false, ['encrypt']);
+    // ECB = AES on each block independently. One-block CBC with a zero IV is exactly that.
+    const uniq = new Map();
+    const nB = bufs.plain.length / 16;
+    for (let b = 0; b < nB; b++) { const blk = bufs.plain.subarray(b * 16, b * 16 + 16); const k = blk.join(','); if (!uniq.has(k)) uniq.set(k, blk.slice()); }
+    const zero = new Uint8Array(16);
+    const encd = new Map();
+    await Promise.all([...uniq].map(async ([k, blk]) => { const c = new Uint8Array(await subtle.encrypt({ name: 'AES-CBC', iv: zero }, kCbc, blk)); encd.set(k, c.slice(0, 16)); }));
+    bufs.ecb = new Uint8Array(bufs.plain.length);
+    for (let b = 0; b < nB; b++) bufs.ecb.set(encd.get(bufs.plain.subarray(b * 16, b * 16 + 16).join(',')), b * 16);
+    bufs.ctr = new Uint8Array(await subtle.encrypt({ name: 'AES-CTR', counter: randBytes(16), length: 64 }, kCtr, bufs.plain));
+    bufs.uniq = uniq.size;
+  }
+  const ready = build();
+  $('#ecbBtns').addEventListener('click', async e => {
+    const b = e.target.closest('[data-mode]'); if (!b) return;
+    await ready;
+    const m = b.dataset.mode;
+    if (!bufs[m]) return;
+    $$('#ecbBtns [data-mode]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    render(bufs[m]);
+    $('#ecbCap').textContent = caps[m] + (m === 'ecb' ? ` Only ${bufs.uniq} distinct blocks out of ${fmt(TX * TY)}.` : '');
+  });
+})();
+
+/* ---- bit flipping: CTR vs GCM ---- */
+(() => {
+  const P = 'PAY $0010 TO BOB';
+  let kCtr, kGcm, counter, iv, C, G;
+  const ready = (async () => {
+    if (needCrypto($('#bfC'))) return;
+    const raw = randBytes(16);
+    kCtr = await subtle.importKey('raw', raw, 'AES-CTR', false, ['encrypt', 'decrypt']);
+    kGcm = await subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
+    counter = randBytes(16); iv = randBytes(12);
+    C = new Uint8Array(await subtle.encrypt({ name: 'AES-CTR', counter, length: 64 }, kCtr, enc.encode(P)));
+    G = new Uint8Array(await subtle.encrypt({ name: 'AES-GCM', iv }, kGcm, enc.encode(P)));
+    $('#bfC').textContent = toHex(C);
+  })();
+  const target = () => $('#bfT').value.padEnd(16, ' ').slice(0, 16);
+  function preview() {
+    if (!C) return;
+    const d = enc.encode(P).map((b, i) => b ^ (enc.encode(target())[i] ?? 32));
+    $('#bfD').textContent = toHex(d);
+    $('#bfC2').textContent = toHex(C.map((b, i) => b ^ d[i]));
+  }
+  $('#bfT').addEventListener('input', preview);
+  ready.then(preview);
+  $('#bfGo').addEventListener('click', async () => {
+    await ready; if (!C) return;
+    const T = enc.encode(target());
+    if (T.length !== 16) { $('#bfCtr').textContent = 'Please use plain ASCII characters only.'; return; }
+    const d = enc.encode(P).map((b, i) => b ^ T[i]);
+    const C2 = C.map((b, i) => b ^ d[i]);
+    const ctrPt = dec.decode(await subtle.decrypt({ name: 'AES-CTR', counter, length: 64 }, kCtr, C2));
+    const a = $('#bfCtr'); a.className = 'verdict bad'; a.textContent = `Decrypts fine: “${ctrPt}”. Bob pays.`;
+    const G2 = G.slice(); for (let i = 0; i < 16; i++) G2[i] ^= d[i];
+    const g = $('#bfGcm');
+    try { const pt = await subtle.decrypt({ name: 'AES-GCM', iv }, kGcm, G2); g.className = 'verdict'; g.textContent = `Accepted: “${dec.decode(pt)}”. Mallory changed nothing, so the tag still matches.`; }
+    catch (e) { g.className = 'verdict good'; g.textContent = 'Rejected: the authentication tag doesn\'t match. Bob sees an error, not a forged payment.'; }
+  });
+})();
+
+/* ---- key distribution graph ---- */
+(() => {
+  const svg = $('#kdSvg'), n = $('#kdN');
+  function upd() {
+    const N = +n.value;
+    const pts = Array.from({ length: N }, (_, i) => { const a = (i / N) * Math.PI * 2 - Math.PI / 2; return [Math.cos(a) * 185, Math.sin(a) * 185]; });
+    let lines = '';
+    for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) lines += `<line x1="${pts[i][0].toFixed(1)}" y1="${pts[i][1].toFixed(1)}" x2="${pts[j][0].toFixed(1)}" y2="${pts[j][1].toFixed(1)}" stroke-width="${N > 25 ? 0.6 : 1.2}"></line>`;
+    const r = N > 25 ? 5 : 8;
+    svg.innerHTML = lines + pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${r}"></circle>`).join('');
+    $('#kdNLab').textContent = N;
+    $('#kdSym').textContent = fmt(N * (N - 1) / 2);
+    $('#kdPub').textContent = fmt(N);
+  }
+  n.addEventListener('input', upd); upd();
+})();
+
+/* ---- Diffie-Hellman ---- */
+function modpow(b, e, m) { b %= m; let r = 1n; while (e > 0n) { if (e & 1n) r = (r * b) % m; b = (b * b) % m; e >>= 1n; } return r; }
+(() => {
+  const COMMON = '#D2FF00';
+  const SA = ['#385BCB', '#195050', '#08B8B7', '#003232'];
+  const SB = ['#FF8163', '#829E9E', '#4E7777', '#B7C4C4'];
+  let a = SA[0], b = SB[0];
+  const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const mix = (...cs) => { const v = cs.map(rgb); return '#' + [0, 1, 2].map(k => Math.round(v.reduce((s, c) => s + c[k], 0) / v.length).toString(16).padStart(2, '0')).join(''); };
+  const sw = (el, list, cur, set) => { el.innerHTML = list.map(c => `<button class="swatch" style="background:${c}" data-c="${c}" aria-pressed="${c === cur}" aria-label="Colour ${c}"></button>`).join(''); el.onclick = e => { const t = e.target.closest('[data-c]'); if (t) { set(t.dataset.c); paint(); } }; };
+  function paint() {
+    sw($('#dhSwA'), SA, a, c => { a = c; });
+    sw($('#dhSwB'), SB, b, c => { b = c; });
+    $('#dhCommon').style.background = COMMON;
+    const mA = mix(COMMON, a), mB = mix(COMMON, b);
+    $('#dhMixA').style.background = mA; $('#dhMixB').style.background = mB;
+    $('#dhWireA').style.background = mA; $('#dhWireB').style.background = mB;
+    const fin = mix(COMMON, a, b); // same for both: (c+a+b)/3
+    $('#dhFinA').style.background = fin; $('#dhFinB').style.background = fin;
+  }
+  paint();
+
+  const sel = $('#dhP'), ia = $('#dhA'), ib = $('#dhB');
+  const params = () => sel.value.split(',').map(Number);
+  function math() {
+    const [p, g] = params();
+    const P = BigInt(p), G = BigInt(g);
+    const A_ = BigInt(Math.max(1, Math.floor(+ia.value || 1))), B_ = BigInt(Math.max(1, Math.floor(+ib.value || 1)));
+    const A = modpow(G, A_, P), B = modpow(G, B_, P);
+    const s1 = modpow(B, A_, P), s2 = modpow(A, B_, P);
+    $('#dhEq').innerHTML =
+      `<span class="c-alice">Alice</span> sends A = g<sup>a</sup> mod p = ${g}<sup>${A_}</sup> mod ${p} = <span class="v">${A}</span><br>` +
+      `<span class="c-bob">Bob</span> sends B = g<sup>b</sup> mod p = ${g}<sup>${B_}</sup> mod ${p} = <span class="v">${B}</span><br>` +
+      `<span class="c-alice">Alice</span> computes B<sup>a</sup> mod p = <span class="v">${s1}</span><br>` +
+      `<span class="c-bob">Bob</span> computes A<sup>b</sup> mod p = <span class="v">${s2}</span> ${s1 === s2 ? '<span class="tag good">shared secret</span>' : ''}`;
+    return { p, g, A: Number(A) };
+  }
+  sel.addEventListener('change', () => {
+    const [p] = params();
+    const r = () => 2 + Math.floor(Math.random() * (p - 3));
+    ia.value = p > 100000 ? 1.2e9 + Math.floor(Math.random() * (p - 1.2e9 - 1)) : r();
+    ib.value = r();
+    math(); $('#dhEveOut').className = 'verdict'; $('#dhEveOut').textContent = 'Eve knows p, g, A and B. She needs a or b: the discrete logarithm problem.';
+  });
+  [ia, ib].forEach(x => x.addEventListener('input', math));
+  math();
+  let evRun = 0;
+  $('#dhEve').addEventListener('click', () => {
+    const { p, g, A } = math();
+    const my = ++evRun; const o = $('#dhEveOut');
+    const t0 = performance.now(); const BUDGET = 1500;
+    let x = 1, k = 0;
+    o.className = 'verdict'; o.textContent = 'Eve is trying exponents…';
+    const chunk = () => {
+      if (my !== evRun) return;
+      const end = performance.now() + 40;
+      while (performance.now() < end) {
+        for (let i = 0; i < 20000; i++) { k++; x = (x * g) % p; if (x === A) { o.className = 'verdict bad'; o.textContent = `Eve found a = ${fmt(k)} after ${fmt(k)} tries (${(performance.now() - t0).toFixed(0)} ms). She can now compute the shared secret.`; return; } if (k >= p) { o.textContent = 'Searched the whole group.'; return; } }
+      }
+      if (performance.now() - t0 > BUDGET) { o.className = 'verdict good'; o.textContent = `Eve gave up after ${fmt(k)} tries (${(k / p * 100).toFixed(1)}% of the possibilities) in ${(BUDGET / 1000).toFixed(1)} s. A real 2048-bit prime has about 10^616 possibilities.`; return; }
+      o.textContent = `Eve is trying exponents… ${fmt(k)}`;
+      setTimeout(chunk, 0);
+    };
+    chunk();
+  });
+  hooks.dh = { leave() { evRun++; } };
+})();
+
+/* ---- RSA toy ---- */
+(() => {
+  const PR = [11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113];
+  const sp = $('#rsaP'), sq = $('#rsaQ');
+  const opts = d => PR.map(p => `<option ${p === d ? 'selected' : ''}>${p}</option>`).join('');
+  sp.innerHTML = opts(61); sq.innerHTML = opts(53);
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  function modinv(a, m) { let [or, r] = [a, m], [os, s] = [1n, 0n]; while (r !== 0n) { const q = or / r; [or, r] = [r, or - q * r]; [os, s] = [s, os - q * s]; } return ((os % m) + m) % m; }
+  let state = {};
+  function upd() {
+    const p = +sp.value, q = +sq.value;
+    const note = $('#rsaNote');
+    if (p === q) { $('#rsaSteps').innerHTML = ''; $('#rsaCells').innerHTML = ''; note.textContent = 'Pick two different primes.'; return; }
+    const n = p * q, phi = (p - 1) * (q - 1);
+    const e = [17, 3, 5, 7, 11, 13, 19, 23, 29, 31, 37].find(x => x < phi && gcd(x, phi) === 1);
+    const d = Number(modinv(BigInt(e), BigInt(phi)));
+    state = { p, q, n, phi, e, d };
+    $('#rsaSteps').innerHTML =
+      `<dt>n = p × q</dt><dd class="pub"><span>${p} × ${q} = ${n}</span></dd>` +
+      `<dt>φ(n)</dt><dd>(p−1)(q−1) = ${phi}</dd>` +
+      `<dt>public key</dt><dd class="pub"><span>(e = ${e}, n = ${n})</span></dd>` +
+      `<dt>private key</dt><dd class="priv"><span>d = e⁻¹ mod φ = ${d}</span></dd>` +
+      `<dt>encrypt</dt><dd>c = m<sup>${e}</sup> mod ${n}</dd>` +
+      `<dt>decrypt</dt><dd>m = c<sup>${d}</sup> mod ${n}</dd>`;
+    const chars = [...$('#rsaMsg').value].filter(c => c.charCodeAt(0) < n && c.charCodeAt(0) < 128);
+    const rows = chars.map(ch => { const m = BigInt(ch.charCodeAt(0)); const c = modpow(m, BigInt(e), BigInt(n)); const back = modpow(c, BigInt(d), BigInt(n)); return { ch, m, c, back }; });
+    const seen = {}; rows.forEach(r => { seen[r.ch] = (seen[r.ch] || 0) + 1; });
+    $('#rsaCells').innerHTML = rows.map(r => `<div class="${seen[r.ch] > 1 ? 'rep' : ''}"><b>${esc(r.ch === ' ' ? 'sp' : r.ch)}</b>m=${r.m}<span>c=${r.c}</span><small class="muted">→ ${r.back}</small></div>`).join('');
+    note.innerHTML = Object.values(seen).some(v => v > 1)
+      ? 'Outlined cells: the same letter always gives the same ciphertext. Textbook RSA is deterministic, which is why real RSA adds random padding (OAEP).'
+      : 'Each character code m is encrypted separately; the bottom row shows it decrypting back.';
+    const fo = $('#rsaFactorOut'); fo.className = 'verdict'; fo.textContent = 'With p and q, Eve can compute d and read everything.';
+  }
+  [sp, sq].forEach(x => x.addEventListener('change', upd));
+  $('#rsaMsg').addEventListener('input', upd);
+  upd();
+  $('#rsaFactor').addEventListener('click', () => {
+    const { n, e, phi } = state; if (!n) return;
+    const t0 = performance.now(); let f = 2; while (n % f) f++;
+    const ms = performance.now() - t0;
+    const o = $('#rsaFactorOut'); o.className = 'verdict bad';
+    o.textContent = `n = ${n} = ${f} × ${n / f}, found in ${ms < 1 ? '< 1' : ms.toFixed(1)} ms. Eve computes φ = ${phi} and d = ${modinv(BigInt(e), BigInt(phi))}. Private key recovered.`;
+  });
+  $('#rsaReal').addEventListener('click', async () => {
+    const box = $('#rsaBig'); if (needCrypto(box)) return;
+    const btn = $('#rsaReal'); btn.disabled = true; box.textContent = 'Generating two random 1024-bit primes…';
+    const t0 = performance.now();
+    const kp = await subtle.generateKey({ name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, true, ['encrypt', 'decrypt']);
+    const ms = performance.now() - t0;
+    const jwk = await subtle.exportKey('jwk', kp.publicKey);
+    let s = jwk.n.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '=';
+    const hex = [...atob(s)].map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+    const dec10 = BigInt('0x' + hex).toString();
+    box.innerHTML = `<b style="color:var(--fg)">n (${dec10.length} digits, generated in ${ms.toFixed(0)} ms, e = 65537):</b><br>${dec10}`;
+    btn.disabled = false;
+  });
+})();
+
+/* ---- ECDSA signatures ---- */
+(() => {
+  let alice, mallory, sig = null, signer = '';
+  const ready = (async () => {
+    if (needCrypto($('#sgPub'))) return;
+    const P = { name: 'ECDSA', namedCurve: 'P-256' };
+    alice = await subtle.generateKey(P, true, ['sign', 'verify']);
+    mallory = await subtle.generateKey(P, true, ['sign', 'verify']);
+    const raw = toHex(await subtle.exportKey('raw', alice.publicKey));
+    $('#sgPub').textContent = raw.slice(0, 40) + '…' + raw.slice(-12) + ' (65 bytes)';
+  })();
+  const ALG = { name: 'ECDSA', hash: 'SHA-256' };
+  async function sign(kp, who) {
+    await ready; if (!kp) return;
+    sig = new Uint8Array(await subtle.sign(ALG, kp.privateKey, enc.encode($('#sgMsg').value)));
+    signer = who;
+    $('#sgSig').textContent = toHex(sig) + ` (${who})`;
+    verify();
+  }
+  async function verify() {
+    if (!sig || !alice) return;
+    const ok = await subtle.verify(ALG, alice.publicKey, sig, enc.encode($('#sgMsg').value));
+    const o = $('#sgOut');
+    o.className = 'verdict ' + (ok ? 'good' : 'bad');
+    o.textContent = ok ? 'Valid. Signed by Alice, and not a single byte has changed.'
+      : signer === 'Mallory' ? 'Invalid. This signature was not made with Alice\'s private key.'
+        : 'Invalid. The message was changed after Alice signed it.';
+  }
+  $('#sgSign').addEventListener('click', () => sign(alice, 'Alice'));
+  $('#sgMal').addEventListener('click', () => sign(mallory, 'Mallory'));
+  $('#sgMsg').addEventListener('input', verify);
+})();
+
+/* ---- TLS 1.3 stepper ---- */
+(() => {
+  const S = [
+    { d: 'to-s', a: 'Browser → Server', t: 'ClientHello', p: 'Random nonce, supported cipher suites, and a key_share: the browser\'s fresh X25519 public key.', pr: ['kex'] },
+    { d: 'to-c', a: 'Server → Browser', t: 'ServerHello', p: 'Picks TLS_AES_128_GCM_SHA256 and sends its own X25519 key_share.', pr: ['kex'] },
+    { d: 'both', a: 'Both sides, locally', t: 'Diffie–Hellman, then derive keys', p: 'Each side combines its private key with the other\'s share: same secret. HKDF stretches it into separate handshake and traffic keys. From here on, everything is encrypted.', pr: ['kex', 'kdf', 'hash'] },
+    { d: 'to-c', a: 'Server → Browser', t: '{Certificate}', p: '“This public key belongs to example.com”, signed by a certificate authority your OS or browser trusts.', pr: ['sig', 'aead'], enc: true },
+    { d: 'to-c', a: 'Server → Browser', t: '{CertificateVerify}', p: 'A signature over a hash of the whole handshake so far, made with the certificate\'s private key. This is what stops a man in the middle.', pr: ['sig', 'hash', 'aead'], enc: true },
+    { d: 'to-c', a: 'Server → Browser', t: '{Finished}', p: 'An HMAC over the transcript, proving the server saw exactly the same handshake messages.', pr: ['mac', 'aead'], enc: true },
+    { d: 'to-s', a: 'Browser → Server', t: 'Verify, then {Finished}', p: 'The browser checks the certificate chain up to a trusted root, the CertificateVerify signature and the server\'s Finished, then sends its own Finished.', pr: ['sig', 'mac', 'aead'], enc: true },
+    { d: 'both', a: 'Both directions', t: 'Application data', p: 'HTTP requests and responses, encrypted and authenticated with AES-GCM under keys from HKDF. One round trip, and the ephemeral private keys get deleted: forward secrecy.', pr: ['aead', 'kdf'], enc: true },
+  ];
+  let i = -1;
+  $('#tlsSteps').innerHTML = S.map((s, k) => `<div class="step ${s.d}" data-k="${k}"><span class="dir">${s.a}${s.enc ? '<span class="enc"><span class="gs-icon" data-fb="" aria-hidden="true">lock</span>encrypted</span>' : ''}</span><h3>${s.t}</h3></div>`).join('');
+  function upd() {
+    $$('#tlsSteps .step').forEach((el, k) => { el.classList.toggle('cur', k === i); el.classList.toggle('done', k < i); });
+    const on = i >= 0 ? S[i].pr : [];
+    $$('#tlsPrims .prim').forEach(p => p.classList.toggle('on', on.includes(p.dataset.p)));
+    $('#tlsCount').textContent = i < 0 ? '' : `Step ${i + 1} of ${S.length}`;
+    $('#tlsTitle').textContent = i < 0 ? 'Ready when you are' : S[i].t;
+    $('#tlsText').textContent = i < 0 ? 'Press “Next step” to start the handshake. Each step lights up the primitives it uses.' : S[i].p;
+    $('#tlsPrev').disabled = i < 0; $('#tlsNext').disabled = i >= S.length - 1;
+  }
+  $('#tlsNext').addEventListener('click', () => { i = Math.min(S.length - 1, i + 1); upd(); });
+  $('#tlsPrev').addEventListener('click', () => { i = Math.max(-1, i - 1); upd(); });
+  $('#tlsReset').addEventListener('click', () => { i = -1; upd(); });
+  $('#tlsSteps').addEventListener('click', e => { const s = e.target.closest('[data-k]'); if (s) { i = +s.dataset.k; upd(); } });
+  upd();
+})();
+
+/* ---- post-quantum table ---- */
+(() => {
+  const R = [
+    ['RSA-2048', 'Factoring', 'bad', 'Broken', 'Shor\'s algorithm factors in polynomial time.'],
+    ['X25519, ECDSA, Ed25519', 'Elliptic-curve discrete log', 'bad', 'Broken', 'Shor\'s algorithm again.'],
+    ['Finite-field Diffie–Hellman', 'Discrete log', 'bad', 'Broken', 'Shor\'s algorithm again.'],
+    ['AES-128', 'Key search', 'warn', 'Weakened', 'Grover halves the effective bits, to about 64. Prefer AES-256.'],
+    ['AES-256', 'Key search', 'good', 'Fine', 'Still about 128-bit security after Grover.'],
+    ['SHA-256 / SHA-3', 'Preimages, collisions', 'good', 'Fine', 'Only modest quantum speed-ups.'],
+    ['ML-KEM, ML-DSA', 'Module lattices', 'good', 'Fine (as far as we know)', 'Designed to resist known quantum algorithms.'],
+  ];
+  let q = false;
+  function upd() {
+    $('#pqBody').innerHTML = R.map(r => {
+      const [cls, label] = q ? [r[2], r[3]] : ['good', 'Secure'];
+      return `<tr><td>${r[0]}</td><td class="muted">${r[1]}</td><td><span class="tag ${cls}">${label}</span></td><td class="muted small">${q ? r[4] : 'No known efficient classical attack.'}</td></tr>`;
+    }).join('');
+    $('#pqToggle').setAttribute('aria-pressed', q);
+    $('#pqToggle').textContent = q ? 'Back to classical computers' : 'Switch on a large quantum computer';
+  }
+  $('#pqToggle').addEventListener('click', () => { q = !q; upd(); });
+  upd();
+})();
+
+
+</script>
+<script>
+/* ---- boot ---- */
+(() => {
+  const id = decodeURIComponent(location.hash.slice(1));
+  const i = indexOfId(id);
+  go(i >= 0 ? i : 0, i >= 0);
+})();
+
+</script>
+</html>
