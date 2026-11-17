@@ -168,9 +168,10 @@
       const root = document.documentElement, t0 = root.dataset.theme;
       for (const th of ['light', 'dark']) {
         root.dataset.theme = th; await show('start'); await sleep(30);
-        const st = getComputedStyle(q('#start')), logo = getComputedStyle(q('#start'), '::before').backgroundImage, h1 = getComputedStyle(q('#start h1')).color;
-        if (th === 'light') ok('light mode: title slide uses the soft-yellow gradient, green logo, dark green text', st.backgroundImage.includes('radial-gradient') && logo.includes('195050') && h1 === 'rgb(0, 50, 50)', `${st.backgroundImage.slice(0, 60)} | ${h1}`);
-        else ok('dark mode: title slide uses the deep-green gradient, light logo, light text', st.backgroundImage.includes('linear-gradient(90deg') && !st.backgroundImage.includes('radial-gradient') && logo.includes('ebebeb') && h1 === 'rgb(235, 235, 235)', `${st.backgroundImage.slice(0, 60)} | ${h1}`);
+        const st = getComputedStyle(q('#start')), h1 = getComputedStyle(q('#start h1')).color;
+        if (th === 'light') ok('light mode: title slide uses the soft-yellow gradient and dark green text', st.backgroundImage.includes('radial-gradient') && h1 === 'rgb(0, 50, 50)', `${st.backgroundImage.slice(0, 60)} | ${h1}`);
+        else ok('dark mode: title slide uses the deep-green gradient and light text', st.backgroundImage.includes('linear-gradient(90deg') && !st.backgroundImage.includes('radial-gradient') && h1 === 'rgb(235, 235, 235)', `${st.backgroundImage.slice(0, 60)} | ${h1}`);
+        ok(`${th} mode: no logo or watermark on any slide`, [...document.querySelectorAll('.slide')].every(s => !/url\(/.test(getComputedStyle(s).backgroundImage) && getComputedStyle(s, '::before').content === 'none'));
         await show('agenda'); await sleep(30);
         const ag = getComputedStyle(q('#agenda'));
         ok(`${th} mode: agenda slide follows the theme`, th === 'light' ? ag.backgroundImage.includes('radial-gradient') : !ag.backgroundImage.includes('radial-gradient'));
@@ -630,14 +631,13 @@
       await show('thanks'); click(q('#thanks a[href="#start"]')); await sleep(20); eq('back to start', S[cur_()].id, 'start');
     });
 
-    /* ------------------------------------------------------------ brand */
-    await section('brand', async () => {
+    /* ------------------------------------------------------------ theme */
+    await section('theme', async () => {
       const fams = new Set();
       for (const s of S) for (const el of qa('*', s)) { if (el.closest('.notes, svg')) continue; if ([...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) fams.add(getComputedStyle(el).fontFamily.split(',')[0].replace(/["']/g, '').trim()); }
-      eq('only brand typefaces are used', [...fams].sort().join(', '), 'JetBrains Mono, Material Symbols Outlined, Montserrat');
+      eq('only the deck typefaces are used', [...fams].sort().join(', '), 'JetBrains Mono, Material Symbols Outlined, Montserrat');
       await show('caesar');
-      const logo = getComputedStyle(q('.slide.active'), '::before');
-      ok('logo present and at least 96px wide', logo.backgroundImage.includes('data:image/svg+xml') && parseFloat(logo.width) >= 96);
+      ok('no logo or watermark image anywhere', !/url\(/.test(getComputedStyle(q('.slide.active')).backgroundImage) && getComputedStyle(q('.slide.active'), '::before').content === 'none');
       eq('progress bar is safety yellow', getComputedStyle(q('#progress')).backgroundColor, 'rgb(210, 255, 0)');
     });
 
