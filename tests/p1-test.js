@@ -391,12 +391,25 @@
       const top = h.slice(0, 11).indexOf(Math.max(...h.slice(0, 11))) + 1;
       eq('the tallest bar (lengths 1–11) is 6', top, 6);
       ok('length 12, a multiple of 6, also stands out', h[11] > Math.max(...h.filter((_, i) => i !== 5 && i !== 11)));
-      bars[4].click(); click('#vbSolve'); await sleep(1400);
+      bars[4].click();
+      eq('length 5 deals the intercept into 5 columns', qa('#vbCols .vb-col').length, 5);
+      ok('…and most of those columns look flat', qa('#vbCols .vb-col.flat').length >= 4, qa('#vbCols .vb-col.flat').length);
+      const ct = vigenere(VIG_TEXT, VIG_KEY).replace(/[^A-Z]/g, '');
+      eq('column 2 holds letters 2, 7, 12, 17, 22', q('#vbCols .vb-col:nth-child(2) .mono').textContent.slice(0, 5), ct[1] + ct[6] + ct[11] + ct[16] + ct[21]);
+      ok('the caption counts the English-like columns', /^\d of 5 columns look like English/.test(q('#vbColsCap').textContent), q('#vbColsCap').textContent);
+      click('#vbSolve'); await sleep(1400);
       const wrong = qa('#vbKey span').map(s => s.textContent).join('');
       ok('wrong length gives a wrong key and nonsense', wrong.length === 5 && wrong !== 'ORACL' && !/^THETRAVELLER/.test(only(q('#vbText').textContent)), wrong);
       bars[5].click(); click('#vbSolve'); await sleep(1500);
       eq('length 6 recovers the keyword', qa('#vbKey span').map(s => s.textContent).join(''), 'ORACLE');
       ok('and the text decrypts', /^THE TRAVELLER REACHED THE HARBOUR/.test(q('#vbText').textContent), q('#vbText').textContent.slice(0, 40));
+      eq('length 6: all 6 columns look like English', qa('#vbCols .vb-col.eng').length, 6);
+      eq('each column header shows the shift that cracked it', qa('#vbCols .vb-col b').map(b => b.textContent.slice(-1)).join(''), 'ORACLE');
+      bars[11].click();
+      ok('length 12: most of the 12 columns look like English too', qa('#vbCols .vb-col').length === 12 && qa('#vbCols .vb-col.eng').length >= 9, qa('#vbCols .vb-col.eng').length);
+      bars[0].click();
+      ok('length 1: the single column looks flat', qa('#vbCols .vb-col.flat').length === 1);
+      bars[5].click();
     });
 
     /* ------------------------------------------------------------ Enigma */

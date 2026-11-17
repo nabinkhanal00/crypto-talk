@@ -567,6 +567,28 @@ mark{background:var(--hl-bg);color:var(--hl-fg);border-radius:3px;padding:0 .08e
 .lenbars button:hover i{opacity:1}
 .lenbars button[aria-pressed="true"] i{background:#D2FF00;opacity:1;outline:1.5px solid #195050}
 .vb-key{display:flex;gap:6px;min-height:2.4em}
+#vigbreak .lenbars{height:clamp(80px,12vh,150px)}
+#vbLenNote{min-height:2lh;margin:0}
+/* breaking Vigenère: the columns strip */
+.vb-cols-panel{padding-block:clamp(10px,1.3vw,18px);display:flex;flex-direction:column;gap:.5em}
+.vb-cols-head{display:flex;align-items:baseline;gap:1em}
+.vb-cols-head h3{white-space:nowrap;margin:0}
+#vbColsCap{margin:0;min-height:2lh}
+.vb-cols{display:flex;gap:14px;align-items:stretch;font-size:.82em}
+.vb-refs{display:flex;gap:8px;padding-right:14px;border-right:1px solid var(--line)}
+.vb-grid{flex:1;min-width:0;display:grid;grid-template-columns:repeat(var(--n,1),minmax(0,92px));gap:8px;justify-content:start}
+.vb-col{display:flex;flex-direction:column;gap:3px;min-width:0;width:92px;max-width:100%}
+.vb-grid .vb-col{width:auto}
+.vb-col b{font-size:.85em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vb-col b.got{color:var(--accent-text)}
+.vb-col .mono{font-size:.9em;color:var(--muted);white-space:nowrap;overflow:hidden;letter-spacing:.06em}
+.vb-fp{display:flex;align-items:flex-end;height:clamp(2.6em,8.5vh,6em);border-bottom:1px solid var(--line)}
+.vb-fp i{flex:1;background:var(--series-1);margin-right:1px;border-radius:1px 1px 0 0;min-height:1px}
+.vb-fp i:last-child{margin-right:0}
+.vb-refs .vb-fp i{background:var(--series-2)}
+.vb-col.flat .vb-fp i{opacity:.32}
+.vb-col.eng b{color:var(--accent-text)}
+.vb-empty{margin:0;align-self:center;white-space:nowrap}
 .vb-key span{display:grid;place-items:center;width:1.9em;height:2.2em;font-family:var(--font-mono);font-weight:600;font-size:1.1em;border-radius:6px;background:var(--surface-2);color:var(--muted)}
 .vb-key span.got{background:#D2FF00;color:#003232}
 
@@ -790,6 +812,9 @@ mark{background:var(--hl-bg);color:var(--hl-fg);border-radius:3px;padding:0 .08e
   .slide-inner{gap:clamp(10px,1.7vh,22px)}
   .tabula{font-size:min(.7vw,1.13vh)}
   #vigenere .callout{display:none}
+  #vigbreak .lenbars{height:72px}
+  #vigbreak .vb-fp{height:3.4em}
+  #vigbreak .panel{padding-block:12px}
   .lamp,.key{width:clamp(1.35em,min(2.2vw,3.5vh),2.1em)}
   #enigma .rotor button{height:1.25em}
   .rt-sees{min-height:2.7em}
@@ -1310,7 +1335,7 @@ mark{background:var(--hl-bg);color:var(--hl-fg);border-radius:3px;padding:0 .08e
     <div class="cols">
       <div class="panel stack">
         <h3>Step 1 · Guess the keyword length</h3>
-        <p class="small muted">For each guess, split the intercept into that many columns and measure how “English-like” each column is. The right length makes them all look like English again.</p>
+        <p class="small muted">Deal the intercept into that many columns (below) and score how English-like they look. Taller bar = more English-like.</p>
         <div class="lenbars" id="vbBars"></div>
         <p class="small" id="vbLenNote">Click a bar to choose a length.</p>
       </div>
@@ -1321,9 +1346,17 @@ mark{background:var(--hl-bg);color:var(--hl-fg);border-radius:3px;padding:0 .08e
         <div class="decode" id="vbText"></div>
       </div>
     </div>
+    <div class="panel vb-cols-panel">
+      <div class="vb-cols-head"><h3>Inside the columns</h3><p class="small muted" id="vbColsCap">Click a bar above. Letter 1 goes to column 1, letter 2 to column 2, and so on, wrapping round like dealing cards.</p></div>
+      <div class="vb-cols">
+        <div class="vb-refs" id="vbRefs"></div>
+        <div class="vb-grid" id="vbCols"><p class="small muted vb-empty">No length chosen yet.</p></div>
+      </div>
+    </div>
   </div>
   <aside class="notes" data-min="2.5">
     <p>The bar chart shows, for each possible keyword length, how much each column looks like English (a measure called the index of coincidence). One length stands out, and so do its multiples.</p>
+    <p>Click a bar and look at the strip below: each little chart is one column's letter counts, most common first. English is steep (E, T, A are very common; J, Q, Z almost never appear). Scrambled is flat. At length 5 most columns are flat; at 6 every column is steep. 12 works too because every 12th letter was also shifted by the same key letter.</p>
     <p>Click the tallest bar, then "Solve": each column is cracked like the brute-force slide, and the secret keyword appears letter by letter. Try a wrong length to show it produces nonsense.</p>
     <p>Charles Babbage worked this out around 1854 but never published; Friedrich Kasiski published a method in 1863. Lesson: a short repeating key leaks a pattern. Remember this when we reach the one-time pad.</p>
   </aside>
@@ -2551,22 +2584,43 @@ function solveColumns(letters, L) {
   let L = 0, timers = [];
   const lo = 0.035, hi = 0.075;
   $('#vbBars').innerHTML = scores.map((s, i) => `<button data-l="${i + 1}" title="Length ${i + 1}: ${s.toFixed(3)}" aria-label="Keyword length ${i + 1}"><i style="height:${Math.max(4, (s - lo) / (hi - lo) * 100)}%"></i><span>${i + 1}</span></button>`).join('');
-  $('#vbText').innerHTML = `<span class="u">${esc(CT.slice(0, 300))}…</span>`;
+  $('#vbText').innerHTML = `<span class="u">${esc(CT.slice(0, 180))}…</span>`;
+  // fingerprint: a column's letter counts, most common first, as a share of the column (axis tops out at 16%)
+  const fp = s => { const c = counts(s), n = s.length || 1; return '<span class="vb-fp" aria-hidden="true">' + c.sort((a, b) => b - a).map(f => `<i style="height:${Math.min(100, f / n / 0.16 * 100).toFixed(1)}%"></i>`).join('') + '</span>'; };
+  let seed = 7; const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+  const randomText = Array.from({ length: 98 }, () => AZ[Math.floor(rnd() * 26)]).join('');
+  const plain = lettersOnly(VIG_TEXT.toUpperCase());
+  $('#vbRefs').innerHTML = `<div class="vb-col"><b>English</b><span class="mono">steep</span>${fp(plain)}</div><div class="vb-col"><b>Scrambled</b><span class="mono">flat</span>${fp(randomText)}</div>`;
+  const colsOf = l => Array.from({ length: l }, (_, c) => { let s = ''; for (let i = c; i < letters.length; i += l) s += letters[i]; return s; });
   function pick(l) {
     L = l;
     $$('#vbBars button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.l === l));
     $('#vbLen').textContent = l;
     const s = scores[l - 1];
     $('#vbLenNote').innerHTML = s > 0.058 ? `Length <b>${l}</b>: each column looks like English (score ${s.toFixed(3)}, English is about 0.066). Promising!` : `Length <b>${l}</b>: columns still look scrambled (score ${s.toFixed(3)}; random is about 0.038).`;
-    $('#vbKey').innerHTML = ''; $('#vbText').innerHTML = `<span class="u">${esc(CT.slice(0, 300))}…</span>`;
+    $('#vbKey').innerHTML = ''; $('#vbText').innerHTML = `<span class="u">${esc(CT.slice(0, 180))}…</span>`;
+    const g = $('#vbCols');
+    g.style.setProperty('--n', l);
+    const cols = colsOf(l), eng = cols.map(col => ioc(col) > 0.055), k = eng.filter(Boolean).length;
+    g.innerHTML = cols.map((col, i) => `<div class="vb-col ${eng[i] ? 'eng' : 'flat'}"><b>col ${i + 1}${eng[i] ? ' ✓' : ''}</b><span class="mono">${col.slice(0, 5)}…</span>${fp(col)}</div>`).join('');
+    const of = `<b>${k} of ${l} column${l > 1 ? 's' : ''} look${l === 1 ? 's' : ''} like English</b>`;
+    $('#vbColsCap').innerHTML = l === 1
+      ? `<b>1 column is just the whole message</b>, with letters shifted by every key letter mixed together, so it looks flat, not like English.`
+      : s > 0.058
+      ? `${of}: steep, a few letters very common and others almost missing. Each column was shifted by a single key letter.`
+      : `${of}. The rest are flat, every letter about equally common, because each column mixes letters shifted by different key letters.`;
   }
   function solve() {
     if (!L) pick(scores.indexOf(Math.max(...scores)) + 1);
     timers.forEach(clearTimeout); timers = [];
     const key = solveColumns(letters, L);
     $('#vbKey').innerHTML = [...key].map(() => '<span>?</span>').join('');
-    [...key].forEach((ch, i) => timers.push(setTimeout(() => { const s = $$('#vbKey span')[i]; if (s) { s.textContent = ch; s.classList.add('got'); } }, reducedMotion ? 0 : 160 * (i + 1))));
-    timers.push(setTimeout(() => { $('#vbText').textContent = vigenere(CT, key, -1).slice(0, 300) + '…'; }, reducedMotion ? 0 : 160 * (key.length + 1)));
+    [...key].forEach((ch, i) => timers.push(setTimeout(() => {
+      const s = $$('#vbKey span')[i]; if (s) { s.textContent = ch; s.classList.add('got'); }
+      const h = $$('#vbCols .vb-col b')[i]; if (h) { h.textContent = `col ${i + 1} → ${ch}`; h.classList.add('got'); }
+    }, reducedMotion ? 0 : 160 * (i + 1))));
+    $('#vbColsCap').innerHTML = `<b>Each column is just a Caesar cipher.</b> Try all 26 shifts and keep the one that looks most like English: that shift is one letter of the keyword.`;
+    timers.push(setTimeout(() => { $('#vbText').textContent = vigenere(CT, key, -1).slice(0, 180) + '…'; }, reducedMotion ? 0 : 160 * (key.length + 1)));
   }
   $('#vbBars').addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (b) pick(+b.dataset.l); });
   $('#vbSolve').addEventListener('click', solve);
